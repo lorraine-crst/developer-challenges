@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum MachineType {
+  Bomba
+  Ventilador
+}
+
+enum SensorModel {
+  TcAg
+  TcAs
+  HF_PLUS @map("HF+")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Machine {
+  id               String            @id @default(cuid())
+  name             String
+  type             MachineType
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  monitoringPoints MonitoringPoint[]
+
+  @@map("machines")
+}
+
+model MonitoringPoint {
+  id        String    @id @default(cuid())
+  name      String
+  machineId String
+  machine   Machine   @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  sensor    Sensor?
+  readings  Reading[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([machineId])
+  @@map("monitoring_points")
+}
+
+model Sensor {
+  id                String          @id @default(cuid())
+  serialNumber      String          @unique
+  model             SensorModel
+  monitoringPointId String          @unique
+  monitoringPoint   MonitoringPoint @relation(fields: [monitoringPointId], references: [id], onDelete: Cascade)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@map("sensors")
+}
+
+model Reading {
+  id                Int             @id @default(autoincrement())
+  monitoringPointId String
+  monitoringPoint   MonitoringPoint @relation(fields: [monitoringPointId], references: [id], onDelete: Cascade)
+  seriesName        String
+  datetime          DateTime
+  value             Float
+  createdAt         DateTime        @default(now())
+
+  @@index([monitoringPointId, seriesName, datetime])
+  @@map("readings")
+}
