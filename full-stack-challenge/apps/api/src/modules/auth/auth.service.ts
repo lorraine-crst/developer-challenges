@@ -35,3 +35,10 @@ export async function login({ email, password }: LoginInput) {
     user: { id: user.id, name: user.name, email: user.email },
   };
 }
+
+export function findUserById(id: string): Promise<AuthenticatedUser | null> {
+  return prisma.user.findUnique({
+    where: { id },
+    select: { id: true, name: true, email: true },
+  });
+}

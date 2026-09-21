@@ -12,3 +12,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     next(error);
   }
 }
+
+export function me(req: Request, res: Response) {
+  res.json({ user: req.user });
+}
