@@ -2,6 +2,14 @@ export type MachineType = 'Bomba' | 'Ventilador';
 
 export type SensorModel = 'TcAg' | 'TcAs' | 'HF+';
 
+export interface Machine {
+  id: string;
+  name: string;
+  type: MachineType;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   name: string;
