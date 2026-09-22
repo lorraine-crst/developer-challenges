@@ -3,13 +3,13 @@ import { ZodError } from 'zod';
 import { AppError } from '../lib/errors';
 
 export const notFoundHandler = (_req: Request, res: Response) => {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ error: 'Rota não encontrada' });
 };
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof ZodError) {
     res.status(400).json({
-      error: 'Validation failed',
+      error: 'Falha de validação',
       details: err.issues.map((issue) => ({
         field: issue.path.join('.'),
         message: issue.message,
@@ -24,5 +24,5 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
 
   console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({ error: 'Erro interno do servidor' });
 };

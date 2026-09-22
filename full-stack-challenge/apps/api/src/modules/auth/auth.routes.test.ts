@@ -54,7 +54,7 @@ describe('POST /auth/login', () => {
     expect(response.status).toBe(401);
   });
 
-  it('returns 400 for an invalid email format', async () => {
+  it('returns 400 for an Formato de e-mail inválido', async () => {
     const response = await request(app)
       .post('/auth/login')
       .send({ email: 'not-an-email', password: testUser.password });
