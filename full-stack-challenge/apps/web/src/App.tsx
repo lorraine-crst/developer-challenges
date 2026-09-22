@@ -1,10 +1,13 @@
-import { Box, Typography } from '@mui/material';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import DashboardPage from './pages/DashboardPage';
+import LoginPage from './pages/LoginPage';
 
 export default function App() {
   return (
-    <Box sx={{ p: 4 }}>
-      <Typography variant="h1">Dynamox</Typography>
-      <Typography color="text.secondary">Asset condition monitoring</Typography>
-    </Box>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<DashboardPage />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }

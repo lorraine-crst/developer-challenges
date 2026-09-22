@@ -31,8 +31,8 @@ api.interceptors.request.use((config) => {
 
 export function extractErrorMessage(error: unknown): string {
   if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    return error.response?.data?.error ?? 'Unable to reach the server';
+    return error.response?.data?.error ?? 'Não foi possível conectar ao servidor';
   }
 
-  return 'Unexpected error';
+  return 'Erro inesperado';
 }
