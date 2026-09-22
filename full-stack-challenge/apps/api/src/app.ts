@@ -3,6 +3,10 @@ import express, { type Request, type Response } from 'express';
 import { errorHandler, notFoundHandler } from './middlewares/error-handler';
 import { authRoutes } from './modules/auth/auth.routes';
 import { machineRoutes } from './modules/machines/machine.routes';
+import {
+  machineMonitoringPointRoutes,
+  monitoringPointRoutes,
+} from './modules/monitoring-points/monitoring-point.routes';
 
 export const app = express();
 
@@ -15,6 +19,8 @@ app.get('/health', (_req: Request, res: Response) => {
 
 app.use('/auth', authRoutes);
 app.use('/machines', machineRoutes);
+app.use('/machines/:machineId/monitoring-points', machineMonitoringPointRoutes);
+app.use('/monitoring-points', monitoringPointRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
