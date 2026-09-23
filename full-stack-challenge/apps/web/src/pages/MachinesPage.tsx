@@ -27,7 +27,7 @@ import {
   deleteMachine,
   fetchMachines,
   updateMachine,
-} from '../store/machinesSlice';
+} from '../store/machineSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import type { Machine, MachineType } from '@dynamox/types';
 

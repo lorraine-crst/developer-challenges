@@ -1,6 +1,7 @@
 import { AppError } from '../../lib/errors';
 import { prisma } from '../../lib/prisma';
 import type { CreateMachineInput, UpdateMachineInput } from './machine.schema';
+import { assertSensorCompatibleWithMachine } from '../monitoring-points/sensor.service';
 
 export function findAll() {
   return prisma.machine.findMany({
@@ -23,7 +24,20 @@ async function ensureExists(id: string) {
 }
 
 export async function update(id: string, data: UpdateMachineInput) {
-  await ensureExists(id);
+  const machine = await ensureExists(id);
+
+  if (data.type && data.type !== machine.type) {
+    const points = await prisma.monitoringPoint.findMany({
+      where: { machineId: id },
+      include: { sensor: true },
+    });
+
+    for (const point of points) {
+      if (point.sensor) {
+        assertSensorCompatibleWithMachine(data.type, point.sensor.model);
+      }
+    }
+  }
 
   return prisma.machine.update({ where: { id }, data });
 }

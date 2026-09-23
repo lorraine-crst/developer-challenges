@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { authReducer } from './authSlice';
-import { machinesReducer } from './machinesSlice';
+import { machinesReducer } from './machineSlice';
 
 
 export const store = configureStore({
