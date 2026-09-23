@@ -12,9 +12,10 @@ import { fetchMachines } from '../store/machineSlice';
 import { PAGE_SIZE, fetchMonitoringPoints } from '../store/monitoringPointsSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import type { MonitoringPointSortField, SensorModel } from '@dynamox/types';
+import { isSensorModelRestricted } from '../lib/sensorRules';
 
 const SENSOR_MODELS: SensorModel[] = ['TcAg', 'TcAs', 'HF+'];
-const PUMP_RESTRICTED_MODELS: SensorModel[] = ['TcAg', 'TcAs'];
+
 
 const columns: GridColDef[] = [
   {
@@ -278,7 +279,7 @@ export default function MonitoringPointsPage() {
           >
             {SENSOR_MODELS.map((model) => {
               const disabled =
-                activeMachineType === 'Bomba' && PUMP_RESTRICTED_MODELS.includes(model);
+                activeMachineType !== null && isSensorModelRestricted(activeMachineType, model);
 
               return (
                 <MenuItem key={model} value={model} disabled={disabled}>
