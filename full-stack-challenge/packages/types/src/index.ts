@@ -10,6 +10,34 @@ export interface Machine {
   updatedAt: string;
 }
 
+export interface Sensor {
+  id: string;
+  serialNumber: string;
+  model: SensorModel;
+  monitoringPointId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MonitoringPoint {
+  id: string;
+  name: string;
+  machineId: string;
+  machine: Machine;
+  sensor: Sensor | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export type MonitoringPointSortField = 'machineName' | 'machineType' | 'pointName' | 'sensorModel';
+
 export interface User {
   id: string;
   name: string;

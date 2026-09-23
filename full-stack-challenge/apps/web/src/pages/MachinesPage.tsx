@@ -1,5 +1,6 @@
 import {
   Alert,
+  alpha,
   Box,
   Chip,
   IconButton,
@@ -147,51 +148,64 @@ export default function MachinesPage() {
       />
 
       <Box sx={{ px: { xs: 2, sm: 4 } }}>
-        <Paper variant="outlined">
-          {status === 'loading' ? (
-            <Stack spacing={1} sx={{ p: 2 }}>
-              <Skeleton height={48} />
-              <Skeleton height={48} />
-              <Skeleton height={48} />
-            </Stack>
-          ) : items.length === 0 ? (
-            <Typography sx={{ p: 4 }} color="text.secondary" align="center">
-              Nenhuma máquina cadastrada ainda.
-            </Typography>
-          ) : (
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nome</TableCell>
-                  <TableCell>Tipo</TableCell>
-                  <TableCell align="right">Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((machine) => (
-                  <TableRow key={machine.id} hover>
-                    <TableCell>{machine.name}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={machine.type}
-                        size="small"
-                        color={machine.type === 'Bomba' ? 'primary' : 'secondary'}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <IconButton size="small" onClick={() => openEditForm(machine)}>
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => setMachineToDelete(machine)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </Paper>
+        <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+  {status === 'loading' ? (
+    <Stack spacing={1} sx={{ p: 2 }}>
+      <Skeleton height={48} />
+      <Skeleton height={48} />
+      <Skeleton height={48} />
+    </Stack>
+  ) : items.length === 0 ? (
+    <Typography sx={{ p: 4 }} color="text.secondary" align="center">
+      Nenhuma máquina cadastrada ainda.
+    </Typography>
+  ) : (
+    <Table
+      sx={(theme) => ({
+        '& .MuiTableHead-root .MuiTableRow-root': {
+          bgcolor: theme.palette.primary.main,
+        },
+        '& .MuiTableHead-root .MuiTableCell-root': {
+          color: theme.palette.primary.contrastText,
+          fontWeight: 600,
+        },
+        '& .MuiTableBody-root .MuiTableRow-root:hover': {
+          bgcolor: alpha(theme.palette.secondary.main, 0.1),
+        },
+      })}
+    >
+      <TableHead>
+        <TableRow>
+          <TableCell>Nome</TableCell>
+          <TableCell>Tipo</TableCell>
+          <TableCell align="right">Ações</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {items.map((machine) => (
+          <TableRow key={machine.id} hover>
+            <TableCell>{machine.name}</TableCell>
+            <TableCell>
+              <Chip
+                label={machine.type}
+                size="small"
+                color={machine.type === 'Bomba' ? 'primary' : 'secondary'}
+              />
+            </TableCell>
+            <TableCell align="right">
+              <IconButton size="small" onClick={() => openEditForm(machine)}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+              <IconButton size="small" onClick={() => setMachineToDelete(machine)}>
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )}
+</Paper>
       </Box>
 
       <FormDialog
