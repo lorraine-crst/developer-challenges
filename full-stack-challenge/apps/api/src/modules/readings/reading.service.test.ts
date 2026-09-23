@@ -1,11 +1,17 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { prisma } from '../../lib/prisma';
-import { createMany, findMany, getMetrics } from './reading.service';
+import { count, createMany, findMany, getMetrics, removeSeries } from './reading.service';
 
 vi.mock('../../lib/prisma', () => ({
   prisma: {
     monitoringPoint: { findUnique: vi.fn() },
-    reading: { createMany: vi.fn(), findMany: vi.fn(), aggregate: vi.fn() },
+    reading: {
+      createMany: vi.fn(),
+      findMany: vi.fn(),
+      aggregate: vi.fn(),
+      count: vi.fn(),
+      deleteMany: vi.fn(),
+    },
   },
 }));
 
@@ -124,6 +130,47 @@ describe('getMetrics', () => {
       _min: { value: true },
       _max: { value: true },
       _avg: { value: true },
+    });
+  });
+});
+
+describe('count', () => {
+  it('throws a 400 when seriesName is missing', async () => {
+    findUniquePoint.mockResolvedValue({ id: 'point-1' });
+
+    await expect(count('point-1', undefined)).rejects.toMatchObject({ statusCode: 400 });
+  });
+
+  it('returns the total reading count for the series', async () => {
+    findUniquePoint.mockResolvedValue({ id: 'point-1' });
+    (prisma.reading.count as unknown as Mock).mockResolvedValue(3);
+
+    const result = await count('point-1', 'test-series');
+
+    expect(result).toEqual({ count: 3 });
+    expect(prisma.reading.count).toHaveBeenCalledWith({
+      where: { monitoringPointId: 'point-1', seriesName: 'test-series' },
+    });
+  });
+});
+
+describe('removeSeries', () => {
+  it('throws a 400 when seriesName is missing', async () => {
+    findUniquePoint.mockResolvedValue({ id: 'point-1' });
+
+    await expect(removeSeries('point-1', undefined)).rejects.toMatchObject({
+      statusCode: 400,
+    });
+  });
+
+  it('deletes all readings for the given series', async () => {
+    findUniquePoint.mockResolvedValue({ id: 'point-1' });
+    (prisma.reading.deleteMany as unknown as Mock).mockResolvedValue({ count: 3 });
+
+    await removeSeries('point-1', 'test-series');
+
+    expect(prisma.reading.deleteMany).toHaveBeenCalledWith({
+      where: { monitoringPointId: 'point-1', seriesName: 'test-series' },
     });
   });
 });

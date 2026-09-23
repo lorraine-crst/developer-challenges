@@ -47,3 +47,33 @@ export async function getMetrics(
     next(error);
   }
 }
+
+export async function count(
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const seriesName = typeof req.query.seriesName === 'string' ? req.query.seriesName : undefined;
+    const result = await readingService.count(req.params.id, seriesName);
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function removeSeries(
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const seriesName = typeof req.query.seriesName === 'string' ? req.query.seriesName : undefined;
+    await readingService.removeSeries(req.params.id, seriesName);
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}

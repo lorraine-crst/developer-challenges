@@ -70,3 +70,29 @@ export async function getMetrics(monitoringPointId: string, seriesName: string |
     avg: result._avg.value,
   };
 }
+
+export async function count(monitoringPointId: string, seriesName: string | undefined) {
+  await ensureMonitoringPointExists(monitoringPointId);
+
+  if (!seriesName) {
+    throw new AppError(400, 'Informe o nome da série');
+  }
+
+  const total = await prisma.reading.count({
+    where: { monitoringPointId, seriesName },
+  });
+
+  return { count: total };
+}
+
+export async function removeSeries(monitoringPointId: string, seriesName: string | undefined) {
+  await ensureMonitoringPointExists(monitoringPointId);
+
+  if (!seriesName) {
+    throw new AppError(400, 'Informe o nome da série');
+  }
+
+  await prisma.reading.deleteMany({
+    where: { monitoringPointId, seriesName },
+  });
+}

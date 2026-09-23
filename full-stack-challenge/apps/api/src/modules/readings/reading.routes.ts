@@ -11,3 +11,7 @@ readingRoutes.post('/', readingController.createMany);
 readingRoutes.get('/', readingController.findMany);
 
 readingRoutes.get('/metrics', readingController.getMetrics);
+
+readingRoutes.get('/count', readingController.count);
+
+readingRoutes.delete('/', readingController.removeSeries);
