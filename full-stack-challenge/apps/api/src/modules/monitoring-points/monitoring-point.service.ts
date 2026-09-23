@@ -2,6 +2,7 @@ import { AppError } from '../../lib/errors';
 import { prisma } from '../../lib/prisma';
 import type {
   CreateMonitoringPointInput,
+  ListMonitoringPointsQuery,
   UpdateMonitoringPointInput,
 } from './monitoring-point.schema';
 
@@ -51,4 +52,35 @@ export async function remove(id: string) {
   await ensureExists(id);
 
   await prisma.monitoringPoint.delete({ where: { id } });
+}
+
+function buildOrderBy(sortBy: ListMonitoringPointsQuery['sortBy'], order: 'asc' | 'desc') {
+  switch (sortBy) {
+    case 'machineName':
+      return { machine: { name: order } };
+    case 'machineType':
+      return { machine: { type: order } };
+    case 'pointName':
+      return { name: order };
+    case 'sensorModel':
+      return { sensor: { model: order } };
+  }
+}
+
+export async function list(query: ListMonitoringPointsQuery) {
+  const { page, limit, sortBy, order } = query;
+
+  const orderBy = buildOrderBy(sortBy, order);
+
+  const [items, total] = await Promise.all([
+    prisma.monitoringPoint.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy,
+      include: { machine: true, sensor: true },
+    }),
+    prisma.monitoringPoint.count(),
+  ]);
+
+  return { items, total, page, limit };
 }

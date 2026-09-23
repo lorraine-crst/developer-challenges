@@ -6,6 +6,7 @@ export const monitoringPointRoutes = Router();
 
 monitoringPointRoutes.use(authenticate);
 
+monitoringPointRoutes.get('/', monitoringPointController.list);
 monitoringPointRoutes.put('/:id', monitoringPointController.update);
 monitoringPointRoutes.delete('/:id', monitoringPointController.remove);
 monitoringPointRoutes.post('/:id/sensor', monitoringPointController.associateSensor);

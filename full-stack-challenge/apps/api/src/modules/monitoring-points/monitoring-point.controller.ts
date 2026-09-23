@@ -1,11 +1,23 @@
 import type { NextFunction, Request, Response } from 'express';
 import {
   createMonitoringPointSchema,
+  listMonitoringPointsQuerySchema,
   updateMonitoringPointSchema,
 } from './monitoring-point.schema';
 import * as monitoringPointService from './monitoring-point.service';
 import { associateSensorSchema } from './sensor.schema';
 import * as sensorService from './sensor.service';
+
+export async function list(req: Request, res: Response, next: NextFunction) {
+  try {
+    const query = listMonitoringPointsQuerySchema.parse(req.query);
+    const result = await monitoringPointService.list(query);
+
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
 
 export async function findByMachine(
   req: Request<{ machineId: string }>,
