@@ -17,7 +17,7 @@ async function ensureExists(id: string) {
   const machine = await prisma.machine.findUnique({ where: { id } });
 
   if (!machine) {
-    throw new AppError(404, 'Machine not found');
+    throw new AppError(404, 'Máquina não encontrada');
   }
 
   return machine;

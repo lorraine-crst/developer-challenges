@@ -11,7 +11,7 @@ async function ensureMachineExists(machineId: string) {
   const machine = await prisma.machine.findUnique({ where: { id: machineId } });
 
   if (!machine) {
-    throw new AppError(404, 'Machine not found');
+    throw new AppError(404, 'Máquina não encontrada');
   }
 }
 
@@ -19,7 +19,7 @@ async function ensureExists(id: string) {
   const point = await prisma.monitoringPoint.findUnique({ where: { id } });
 
   if (!point) {
-    throw new AppError(404, 'Monitoring point not found');
+    throw new AppError(404, 'Ponto de monitoramento não encontrado');
   }
 
   return point;

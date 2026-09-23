@@ -33,11 +33,11 @@ export async function associate(monitoringPointId: string, data: AssociateSensor
   });
 
   if (!point) {
-    throw new AppError(404, 'Monitoring point not found');
+    throw new AppError(404, 'Ponto de monitoramento não encontrado');
   }
 
   if (point.sensor) {
-    throw new AppError(409, 'This monitoring point already has a sensor associated');
+    throw new AppError(409, 'Este ponto de monitoramento já possui um sensor associado');
   }
 
   const model = data.model === 'HF+' ? 'HF_PLUS' : data.model;
@@ -49,7 +49,7 @@ export async function associate(monitoringPointId: string, data: AssociateSensor
   });
 
   if (existingSerial) {
-    throw new AppError(409, 'A sensor with this serial number already exists');
+    throw new AppError(409, 'Já existe um sensor com este número de série');
   }
 
   const sensor: Sensor = await prisma.sensor.create({
