@@ -178,8 +178,15 @@ export default function MonitoringPointDetailPage() {
           </Button>
         </Stack>
 
-        <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: 'wrap', gap: 2 }}>
-          <Card sx={{ minWidth: 140, flex: 1 }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+            gap: 2,
+            mb: 3,
+          }}
+        >
+          <Card>
             <CardContent>
               <Typography variant="body2" color="text.secondary">
                 Total de leituras
@@ -187,7 +194,7 @@ export default function MonitoringPointDetailPage() {
               <Typography variant="h2">{metrics?.count ?? 0}</Typography>
             </CardContent>
           </Card>
-          <Card sx={{ minWidth: 140, flex: 1 }}>
+          <Card>
             <CardContent>
               <Typography variant="body2" color="text.secondary">
                 Mínimo
@@ -195,7 +202,7 @@ export default function MonitoringPointDetailPage() {
               <Typography variant="h2">{formatMetric(metrics?.min)}</Typography>
             </CardContent>
           </Card>
-          <Card sx={{ minWidth: 140, flex: 1 }}>
+          <Card>
             <CardContent>
               <Typography variant="body2" color="text.secondary">
                 Máximo
@@ -203,7 +210,7 @@ export default function MonitoringPointDetailPage() {
               <Typography variant="h2">{formatMetric(metrics?.max)}</Typography>
             </CardContent>
           </Card>
-          <Card sx={{ minWidth: 140, flex: 1 }}>
+          <Card>
             <CardContent>
               <Typography variant="body2" color="text.secondary">
                 Média
@@ -211,7 +218,7 @@ export default function MonitoringPointDetailPage() {
               <Typography variant="h2">{formatMetric(metrics?.avg)}</Typography>
             </CardContent>
           </Card>
-        </Stack>
+        </Box>
 
         <Tabs value={view} onChange={(_event, value) => setView(value)} sx={{ mb: 2 }}>
           <Tab label="Gráfico" value="chart" />
@@ -227,12 +234,17 @@ export default function MonitoringPointDetailPage() {
             </Typography>
           </Paper>
         ) : view === 'chart' ? (
-          <Paper variant="outlined" sx={{ p: 2, height: 360 }}>
+          <Paper variant="outlined" sx={{ pt: 2, pr: 2, pb: 2, pl: 0.5, height: 360 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
+              <LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
+                <YAxis
+                  tick={{ fontSize: 12 }}
+                  domain={['auto', 'auto']}
+                  tickFormatter={(value: number) => value.toFixed(1)}
+                  width={40}
+                />
                 <RechartsTooltip
                   labelFormatter={(_label, payload) =>
                     payload?.[0]

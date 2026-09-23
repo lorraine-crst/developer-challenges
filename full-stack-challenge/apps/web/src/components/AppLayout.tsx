@@ -133,10 +133,11 @@ export default function AppLayout() {
         {navList}
       </Drawer>
 
-      <Box
+            <Box
         component="main"
         sx={{
           flexGrow: 1,
+          minWidth: 0,
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
         }}
       >
