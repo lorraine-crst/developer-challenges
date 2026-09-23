@@ -303,7 +303,11 @@ export default function MonitoringPointsPage() {
           paginationModel={{ page: page - 1, pageSize: PAGE_SIZE }}
           onPaginationModelChange={handlePaginationChange}
           onSortModelChange={handleSortChange}
-          onRowClick={(params) => navigate(`/monitoring-points/${params.row.id}`)}
+          onRowClick={(params) =>
+            navigate(`/monitoring-points/${params.row.id}`, {
+              state: { machineName: params.row.machine.name, pointName: params.row.name },
+            })
+          }
           disableColumnMenu
           disableRowSelectionOnClick
           getRowClassName={(params) =>
