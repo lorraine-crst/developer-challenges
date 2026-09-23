@@ -12,6 +12,8 @@ import {
   Tooltip,
 } from '@mui/material';
 import HelpOutlineIcon from '@mui/icons-material/esm/HelpOutline';
+import EditIcon from '@mui/icons-material/esm/EditOutlined';
+import DeleteIcon from '@mui/icons-material/esm/DeleteOutline';
 import {
   DataGrid,
   type GridColDef,
@@ -19,6 +21,7 @@ import {
 } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ConfirmDialog from '../components/ConfirmDialog';
 import FormDialog from '../components/FormDialog';
 import PageHeader from '../components/PageHeader';
 import { api, extractErrorMessage } from '../lib/api';
@@ -35,6 +38,7 @@ const columns: GridColDef[] = [
     field: 'machineName',
     headerName: 'Nome da Máquina',
     flex: 1,
+    minWidth: 160,
     sortable: true,
     valueGetter: (params) => params.row.machine.name,
   },
@@ -42,6 +46,7 @@ const columns: GridColDef[] = [
     field: 'machineType',
     headerName: 'Tipo de Máquina',
     flex: 1,
+    minWidth: 140,
     sortable: true,
     valueGetter: (params) => params.row.machine.type,
     renderCell: (params) => (
@@ -56,6 +61,7 @@ const columns: GridColDef[] = [
     field: 'pointName',
     headerName: 'Nome do Ponto',
     flex: 1,
+    minWidth: 140,
     sortable: true,
     valueGetter: (params) => params.row.name,
   },
@@ -63,6 +69,7 @@ const columns: GridColDef[] = [
     field: 'sensorModel',
     headerName: 'Modelo do Sensor',
     flex: 1,
+    minWidth: 150,
     sortable: true,
     valueGetter: (params) => params.row.sensor?.model ?? null,
     renderCell: (params) => {
@@ -101,6 +108,11 @@ interface CreatePointFormState {
 
 const emptyCreatePointForm: CreatePointFormState = { machineId: '', name: '' };
 
+interface PointSummary {
+  id: string;
+  name: string;
+}
+
 interface FeedbackState {
   message: string;
   severity: 'success' | 'error';
@@ -127,6 +139,16 @@ export default function MonitoringPointsPage() {
   const [createForm, setCreateForm] = useState<CreatePointFormState>(emptyCreatePointForm);
   const [createFormError, setCreateFormError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+
+  const [editingPoint, setEditingPoint] = useState<PointSummary | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editFormError, setEditFormError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+
+  const [pointToDelete, setPointToDelete] = useState<PointSummary | null>(null);
+  const [deleteTargetName, setDeleteTargetName] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
 
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
 
@@ -238,31 +260,119 @@ export default function MonitoringPointsPage() {
     }
   }
 
+  function openEditForm(point: PointSummary) {
+    setEditingPoint(point);
+    setEditName(point.name);
+    setEditFormError(null);
+  }
+
+  function closeEditForm() {
+    setEditingPoint(null);
+  }
+
+  async function handleEditPoint() {
+    if (!editingPoint) return;
+
+    if (!editName.trim()) {
+      setEditFormError('Informe o nome do ponto');
+      return;
+    }
+
+    setEditFormError(null);
+    setEditing(true);
+
+    try {
+      await api.put(`/monitoring-points/${editingPoint.id}`, { name: editName.trim() });
+
+      setEditingPoint(null);
+      void dispatch(fetchMonitoringPoints({ page, sortBy, order }));
+      setFeedback({ message: 'Ponto de monitoramento atualizado com sucesso', severity: 'success' });
+    } catch (error) {
+      setEditFormError(extractErrorMessage(error));
+    } finally {
+      setEditing(false);
+    }
+  }
+
+  function openDeleteConfirm(point: PointSummary) {
+    setPointToDelete(point);
+    setDeleteTargetName(point.name);
+  }
+
+  function closeDeleteConfirm() {
+    setPointToDelete(null);
+  }
+
+  async function handleDeletePoint() {
+    if (!pointToDelete) return;
+
+    setDeleting(true);
+
+    try {
+      await api.delete(`/monitoring-points/${pointToDelete.id}`);
+
+      setPointToDelete(null);
+      void dispatch(fetchMonitoringPoints({ page, sortBy, order }));
+      setFeedback({ message: 'Ponto de monitoramento excluído com sucesso', severity: 'success' });
+    } catch (error) {
+      setFeedback({ message: extractErrorMessage(error), severity: 'error' });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   const columnsWithActions: GridColDef[] = [
     ...columns,
     {
       field: 'actions',
       headerName: 'Ações',
       sortable: false,
-      width: 160,
-      renderCell: (params) => {
-        if (params.row.sensor) {
-          return null;
-        }
+      width: 240,
+      renderCell: (params) => (
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ width: '100%' }}
+        >
+          <Box>
+            {!params.row.sensor && (
+              <Chip
+                label="Associar sensor"
+                size="small"
+                variant="outlined"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openSensorForm(params.row.id, params.row.machine.type);
+                }}
+                sx={{ cursor: 'pointer' }}
+              />
+            )}
+          </Box>
 
-        return (
-          <Chip
-            label="Associar sensor"
-            size="small"
-            variant="outlined"
-            onClick={(event) => {
-              event.stopPropagation();
-              openSensorForm(params.row.id, params.row.machine.type);
-            }}
-            sx={{ cursor: 'pointer' }}
-          />
-        );
-      },
+          <Stack direction="row" spacing={0.5}>
+            <IconButton
+              size="small"
+              onClick={(event) => {
+                event.stopPropagation();
+                openEditForm({ id: params.row.id, name: params.row.name });
+              }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+
+            <IconButton
+              size="small"
+              onClick={(event) => {
+                event.stopPropagation();
+                openDeleteConfirm({ id: params.row.id, name: params.row.name });
+              }}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Stack>
+        </Stack>
+      ),
     },
   ];
 
@@ -393,6 +503,27 @@ export default function MonitoringPointsPage() {
       </FormDialog>
 
       <FormDialog
+        open={editingPoint !== null}
+        title="Editar ponto de monitoramento"
+        loading={editing}
+        submitLabel="Salvar"
+        onClose={closeEditForm}
+        onSubmit={handleEditPoint}
+      >
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          {editFormError && <Alert severity="error">{editFormError}</Alert>}
+
+          <TextField
+            label="Nome do ponto"
+            value={editName}
+            onChange={(event) => setEditName(event.target.value)}
+            autoFocus
+            fullWidth
+          />
+        </Stack>
+      </FormDialog>
+
+      <FormDialog
         open={sensorDialogOpen}
         title="Associar sensor"
         loading={submitting}
@@ -440,6 +571,15 @@ export default function MonitoringPointsPage() {
           </TextField>
         </Stack>
       </FormDialog>
+
+      <ConfirmDialog
+        open={pointToDelete !== null}
+        title="Excluir ponto de monitoramento"
+        message={`Tem certeza que deseja excluir "${deleteTargetName}"? O sensor associado e todas as leituras desse ponto também serão excluídos permanentemente.`}
+        loading={deleting}
+        onConfirm={handleDeletePoint}
+        onCancel={closeDeleteConfirm}
+      />
 
       <Snackbar
         open={feedback !== null}
