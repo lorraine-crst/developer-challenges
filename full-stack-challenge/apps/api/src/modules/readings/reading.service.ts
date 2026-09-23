@@ -47,3 +47,26 @@ export async function findMany(monitoringPointId: string, query: ListReadingsQue
     orderBy: { datetime: 'asc' },
   });
 }
+
+export async function getMetrics(monitoringPointId: string, seriesName: string | undefined) {
+  await ensureMonitoringPointExists(monitoringPointId);
+
+  if (!seriesName) {
+    throw new AppError(400, 'Informe o nome da série');
+  }
+
+  const result = await prisma.reading.aggregate({
+    where: { monitoringPointId, seriesName },
+    _count: true,
+    _min: { value: true },
+    _max: { value: true },
+    _avg: { value: true },
+  });
+
+  return {
+    count: result._count,
+    min: result._min.value,
+    max: result._max.value,
+    avg: result._avg.value,
+  };
+}

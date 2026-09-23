@@ -32,3 +32,18 @@ export async function findMany(
     next(error);
   }
 }
+
+export async function getMetrics(
+  req: Request<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const seriesName = typeof req.query.seriesName === 'string' ? req.query.seriesName : undefined;
+    const metrics = await readingService.getMetrics(req.params.id, seriesName);
+
+    res.json(metrics);
+  } catch (error) {
+    next(error);
+  }
+}

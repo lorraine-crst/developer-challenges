@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { prisma } from '../../lib/prisma';
-import { createMany, findMany } from './reading.service';
+import { createMany, findMany, getMetrics } from './reading.service';
 
 vi.mock('../../lib/prisma', () => ({
   prisma: {
     monitoringPoint: { findUnique: vi.fn() },
-    reading: { createMany: vi.fn(), findMany: vi.fn() },
+    reading: { createMany: vi.fn(), findMany: vi.fn(), aggregate: vi.fn() },
   },
 }));
 
@@ -88,6 +88,42 @@ describe('findMany', () => {
         datetime: { gte: from, lte: to },
       },
       orderBy: { datetime: 'asc' },
+    });
+  });
+});
+
+describe('getMetrics', () => {
+  it('throws a 400 when seriesName is missing', async () => {
+    findUniquePoint.mockResolvedValue({ id: 'point-1' });
+
+    await expect(getMetrics('point-1', undefined)).rejects.toMatchObject({
+      statusCode: 400,
+    });
+  });
+
+  it('aggregates count, min, max and avg for the series', async () => {
+    findUniquePoint.mockResolvedValue({ id: 'point-1' });
+    (prisma.reading.aggregate as unknown as Mock).mockResolvedValue({
+      _count: 3,
+      _min: { value: 0.8 },
+      _max: { value: 2.3 },
+      _avg: { value: 1.5333333333333333 },
+    });
+
+    const result = await getMetrics('point-1', 'test-series');
+
+    expect(result).toEqual({
+      count: 3,
+      min: 0.8,
+      max: 2.3,
+      avg: 1.5333333333333333,
+    });
+    expect(prisma.reading.aggregate).toHaveBeenCalledWith({
+      where: { monitoringPointId: 'point-1', seriesName: 'test-series' },
+      _count: true,
+      _min: { value: true },
+      _max: { value: true },
+      _avg: { value: true },
     });
   });
 });
