@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import MachinesPage from './pages/MachinesPage';
 import MonitoringPointsPage from './pages/MonitoringPointsPage';
+import MonitoringPointDetailPage from './pages/MonitoringPointDetailPage';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/machines" element={<MachinesPage />} />
           <Route path="/monitoring-points" element={<MonitoringPointsPage />} />
+          <Route path="/monitoring-points/:id" element={<MonitoringPointDetailPage />} />
         </Route>
       </Route>
     </Routes>

@@ -19,6 +19,22 @@ export interface Sensor {
   updatedAt: string;
 }
 
+export interface Reading {
+  id: number;
+  monitoringPointId: string;
+  seriesName: string;
+  datetime: string;
+  value: number;
+  createdAt: string;
+}
+
+export interface ReadingMetrics {
+  count: number;
+  min: number | null;
+  max: number | null;
+  avg: number | null;
+}
+
 export interface MonitoringPoint {
   id: string;
   name: string;

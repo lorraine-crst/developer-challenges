@@ -1,10 +1,24 @@
-import { alpha, Alert, Box, Chip, MenuItem, Stack, TextField } from '@mui/material';
+import {
+  alpha,
+  Alert,
+  Box,
+  Chip,
+  ClickAwayListener,
+  IconButton,
+  MenuItem,
+  Snackbar,
+  Stack,
+  TextField,
+  Tooltip,
+} from '@mui/material';
+import HelpOutlineIcon from '@mui/icons-material/esm/HelpOutline';
 import {
   DataGrid,
   type GridColDef,
   type GridSortModel,
 } from '@mui/x-data-grid';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FormDialog from '../components/FormDialog';
 import PageHeader from '../components/PageHeader';
 import { api, extractErrorMessage } from '../lib/api';
@@ -15,7 +29,6 @@ import type { MonitoringPointSortField, SensorModel } from '@dynamox/types';
 import { isSensorModelRestricted } from '../lib/sensorRules';
 
 const SENSOR_MODELS: SensorModel[] = ['TcAg', 'TcAs', 'HF+'];
-
 
 const columns: GridColDef[] = [
   {
@@ -81,8 +94,21 @@ interface SensorFormState {
 
 const emptySensorForm: SensorFormState = { serialNumber: '', model: '' };
 
+interface CreatePointFormState {
+  machineId: string;
+  name: string;
+}
+
+const emptyCreatePointForm: CreatePointFormState = { machineId: '', name: '' };
+
+interface FeedbackState {
+  message: string;
+  severity: 'success' | 'error';
+}
+
 export default function MonitoringPointsPage() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { items, total, page, sortBy, order, status } = useAppSelector(
     (state) => state.monitoringPoints,
   );
@@ -96,6 +122,15 @@ export default function MonitoringPointsPage() {
   const [sensorForm, setSensorForm] = useState<SensorFormState>(emptySensorForm);
   const [sensorFormError, setSensorFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createForm, setCreateForm] = useState<CreatePointFormState>(emptyCreatePointForm);
+  const [createFormError, setCreateFormError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     void dispatch(fetchMonitoringPoints({ page, sortBy, order }));
@@ -156,10 +191,50 @@ export default function MonitoringPointsPage() {
 
       setSensorDialogOpen(false);
       void dispatch(fetchMonitoringPoints({ page, sortBy, order }));
+      setFeedback({ message: 'Sensor associado com sucesso', severity: 'success' });
     } catch (error) {
       setSensorFormError(extractErrorMessage(error));
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function openCreateForm() {
+    setCreateForm(emptyCreatePointForm);
+    setCreateFormError(null);
+    setCreateDialogOpen(true);
+  }
+
+  function closeCreateForm() {
+    setCreateDialogOpen(false);
+  }
+
+  async function handleCreatePoint() {
+    if (!createForm.machineId) {
+      setCreateFormError('Selecione a máquina');
+      return;
+    }
+
+    if (!createForm.name.trim()) {
+      setCreateFormError('Informe o nome do ponto');
+      return;
+    }
+
+    setCreateFormError(null);
+    setCreating(true);
+
+    try {
+      await api.post(`/machines/${createForm.machineId}/monitoring-points`, {
+        name: createForm.name.trim(),
+      });
+
+      setCreateDialogOpen(false);
+      void dispatch(fetchMonitoringPoints({ page, sortBy, order }));
+      setFeedback({ message: 'Ponto de monitoramento criado com sucesso', severity: 'success' });
+    } catch (error) {
+      setCreateFormError(extractErrorMessage(error));
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -180,7 +255,10 @@ export default function MonitoringPointsPage() {
             label="Associar sensor"
             size="small"
             variant="outlined"
-            onClick={() => openSensorForm(params.row.id, params.row.machine.type)}
+            onClick={(event) => {
+              event.stopPropagation();
+              openSensorForm(params.row.id, params.row.machine.type);
+            }}
             sx={{ cursor: 'pointer' }}
           />
         );
@@ -193,7 +271,25 @@ export default function MonitoringPointsPage() {
       <PageHeader
         title="Pontos de monitoramento"
         subtitle="Consulte os pontos e sensores de todas as máquinas"
-      />
+        actionLabel="Novo ponto"
+        onAction={openCreateForm}
+      >
+        <ClickAwayListener onClickAway={() => setHelpOpen(false)}>
+          <Tooltip
+            title="Clique em qualquer linha da tabela para abrir a série temporal (gráfico e métricas) daquele ponto de monitoramento."
+            arrow
+            open={helpOpen}
+            onClose={() => setHelpOpen(false)}
+            disableFocusListener
+            disableHoverListener
+            disableTouchListener
+          >
+            <IconButton size="small" onClick={() => setHelpOpen((prev) => !prev)}>
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </ClickAwayListener>
+      </PageHeader>
 
       <Box sx={{ px: { xs: 2, sm: 4 }, height: 480 }}>
         <DataGrid
@@ -207,6 +303,7 @@ export default function MonitoringPointsPage() {
           paginationModel={{ page: page - 1, pageSize: PAGE_SIZE }}
           onPaginationModelChange={handlePaginationChange}
           onSortModelChange={handleSortChange}
+          onRowClick={(params) => navigate(`/monitoring-points/${params.row.id}`)}
           disableColumnMenu
           disableRowSelectionOnClick
           getRowClassName={(params) =>
@@ -235,12 +332,61 @@ export default function MonitoringPointsPage() {
             '& .MuiDataGrid-row:hover': {
               bgcolor: alpha(theme.palette.secondary.main, 0.12),
             },
+            '& .MuiDataGrid-row': {
+              cursor: 'pointer',
+              userSelect: 'none',
+            },
+            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
+              outline: 'none',
+            },
             '& .MuiDataGrid-footerContainer': {
               borderTop: `2px solid ${theme.palette.primary.main}`,
             },
           })}
         />
       </Box>
+
+      <FormDialog
+        open={createDialogOpen}
+        title="Novo ponto de monitoramento"
+        loading={creating}
+        submitLabel="Criar"
+        onClose={closeCreateForm}
+        onSubmit={handleCreatePoint}
+      >
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          {createFormError && <Alert severity="error">{createFormError}</Alert>}
+
+          <TextField
+            select
+            label="Máquina"
+            value={createForm.machineId}
+            onChange={(event) =>
+              setCreateForm((prev) => ({ ...prev, machineId: event.target.value }))
+            }
+            helperText={machines.length === 0 ? 'Cadastre uma máquina primeiro' : undefined}
+            disabled={machines.length === 0}
+            fullWidth
+          >
+            {machines.map((machine) => (
+              <MenuItem key={machine.id} value={machine.id}>
+                {machine.name} ({machine.type})
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            label="Nome do ponto"
+            value={createForm.name}
+            onChange={(event) =>
+              setCreateForm((prev) => ({ ...prev, name: event.target.value }))
+            }
+            placeholder="Ex.: Mancal Dianteiro"
+            autoFocus
+            fullWidth
+          />
+        </Stack>
+      </FormDialog>
 
       <FormDialog
         open={sensorDialogOpen}
@@ -290,6 +436,19 @@ export default function MonitoringPointsPage() {
           </TextField>
         </Stack>
       </FormDialog>
+
+      <Snackbar
+        open={feedback !== null}
+        autoHideDuration={4000}
+        onClose={() => setFeedback(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        {feedback ? (
+          <Alert severity={feedback.severity} onClose={() => setFeedback(null)}>
+            {feedback.message}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
     </Box>
   );
 }

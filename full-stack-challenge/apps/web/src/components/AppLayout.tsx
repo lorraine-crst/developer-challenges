@@ -37,7 +37,7 @@ const NAV_ITEMS = [
 
 export default function AppLayout() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const location = useLocation();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
@@ -80,7 +80,7 @@ export default function AppLayout() {
             <IconButton
               color="inherit"
               edge="start"
-              onClick={() => setMobileOpen(true)}
+              onClick={() => setMobileOpen((prev) => !prev)}
               sx={{ mr: 2 }}
             >
               <MenuIcon />
@@ -137,7 +137,7 @@ export default function AppLayout() {
         component="main"
         sx={{
           flexGrow: 1,
-          width: { sm: `calc(100% - ${DRAWER_WIDTH}px)` },
+          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
         }}
       >
         <Toolbar />
