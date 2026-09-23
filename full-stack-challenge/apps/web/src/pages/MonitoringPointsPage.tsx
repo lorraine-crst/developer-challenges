@@ -1,14 +1,20 @@
-import { alpha, Box, Chip } from '@mui/material';
+import { alpha, Alert, Box, Chip, MenuItem, Stack, TextField } from '@mui/material';
 import {
   DataGrid,
   type GridColDef,
   type GridSortModel,
 } from '@mui/x-data-grid';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import FormDialog from '../components/FormDialog';
 import PageHeader from '../components/PageHeader';
+import { api, extractErrorMessage } from '../lib/api';
+import { fetchMachines } from '../store/machineSlice';
 import { PAGE_SIZE, fetchMonitoringPoints } from '../store/monitoringPointsSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import type { MonitoringPointSortField } from '@dynamox/types';
+import type { MonitoringPointSortField, SensorModel } from '@dynamox/types';
+
+const SENSOR_MODELS: SensorModel[] = ['TcAg', 'TcAs', 'HF+'];
+const PUMP_RESTRICTED_MODELS: SensorModel[] = ['TcAg', 'TcAs'];
 
 const columns: GridColDef[] = [
   {
@@ -47,9 +53,7 @@ const columns: GridColDef[] = [
     valueGetter: (params) => params.row.sensor?.model ?? null,
     renderCell: (params) => {
       if (!params.value) {
-        return (
-          <Chip label="Sem sensor" size="small" variant="outlined" />
-        );
+        return <Chip label="Sem sensor" size="small" variant="outlined" />;
       }
 
       const isRestricted = params.value === 'TcAg' || params.value === 'TcAs';
@@ -69,15 +73,38 @@ const columns: GridColDef[] = [
   },
 ];
 
+interface SensorFormState {
+  serialNumber: string;
+  model: SensorModel | '';
+}
+
+const emptySensorForm: SensorFormState = { serialNumber: '', model: '' };
+
 export default function MonitoringPointsPage() {
   const dispatch = useAppDispatch();
   const { items, total, page, sortBy, order, status } = useAppSelector(
     (state) => state.monitoringPoints,
   );
+  const machines = useAppSelector((state) => state.machines.items);
+
+  const [sensorDialogOpen, setSensorDialogOpen] = useState(false);
+  const [activePointId, setActivePointId] = useState<string | null>(null);
+  const [activeMachineType, setActiveMachineType] = useState<'Bomba' | 'Ventilador' | null>(
+    null,
+  );
+  const [sensorForm, setSensorForm] = useState<SensorFormState>(emptySensorForm);
+  const [sensorFormError, setSensorFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     void dispatch(fetchMonitoringPoints({ page, sortBy, order }));
   }, [dispatch, page, sortBy, order]);
+
+  useEffect(() => {
+    if (machines.length === 0) {
+      void dispatch(fetchMachines());
+    }
+  }, [machines.length, dispatch]);
 
   function handlePaginationChange(model: { page: number }) {
     void dispatch(fetchMonitoringPoints({ page: model.page + 1, sortBy, order }));
@@ -92,6 +119,74 @@ export default function MonitoringPointsPage() {
     void dispatch(fetchMonitoringPoints({ page: 1, sortBy: nextSortBy, order: nextOrder }));
   }
 
+  function openSensorForm(pointId: string, machineType: 'Bomba' | 'Ventilador') {
+    setActivePointId(pointId);
+    setActiveMachineType(machineType);
+    setSensorForm(emptySensorForm);
+    setSensorFormError(null);
+    setSensorDialogOpen(true);
+  }
+
+  function closeSensorForm() {
+    setSensorDialogOpen(false);
+  }
+
+  async function handleAssociateSensor() {
+    if (!activePointId) return;
+
+    if (!sensorForm.serialNumber.trim()) {
+      setSensorFormError('Informe o número de série do sensor');
+      return;
+    }
+
+    if (!sensorForm.model) {
+      setSensorFormError('Selecione o modelo do sensor');
+      return;
+    }
+
+    setSensorFormError(null);
+    setSubmitting(true);
+
+    try {
+      await api.post(`/monitoring-points/${activePointId}/sensor`, {
+        serialNumber: sensorForm.serialNumber.trim(),
+        model: sensorForm.model,
+      });
+
+      setSensorDialogOpen(false);
+      void dispatch(fetchMonitoringPoints({ page, sortBy, order }));
+    } catch (error) {
+      setSensorFormError(extractErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const columnsWithActions: GridColDef[] = [
+    ...columns,
+    {
+      field: 'actions',
+      headerName: 'Ações',
+      sortable: false,
+      width: 160,
+      renderCell: (params) => {
+        if (params.row.sensor) {
+          return null;
+        }
+
+        return (
+          <Chip
+            label="Associar sensor"
+            size="small"
+            variant="outlined"
+            onClick={() => openSensorForm(params.row.id, params.row.machine.type)}
+            sx={{ cursor: 'pointer' }}
+          />
+        );
+      },
+    },
+  ];
+
   return (
     <Box>
       <PageHeader
@@ -102,7 +197,7 @@ export default function MonitoringPointsPage() {
       <Box sx={{ px: { xs: 2, sm: 4 }, height: 480 }}>
         <DataGrid
           rows={items}
-          columns={columns}
+          columns={columnsWithActions}
           rowCount={total}
           loading={status === 'loading'}
           paginationMode="server"
@@ -127,9 +222,6 @@ export default function MonitoringPointsPage() {
             '& .MuiDataGrid-columnHeaderTitle': {
               fontWeight: 600,
             },
-            '& .MuiDataGrid-columnSeparator': {
-              color: alpha(theme.palette.primary.contrastText, 0.3),
-            },
             '& .MuiDataGrid-sortIcon': {
               color: theme.palette.primary.contrastText,
             },
@@ -148,6 +240,55 @@ export default function MonitoringPointsPage() {
           })}
         />
       </Box>
+
+      <FormDialog
+        open={sensorDialogOpen}
+        title="Associar sensor"
+        loading={submitting}
+        submitLabel="Associar"
+        onClose={closeSensorForm}
+        onSubmit={handleAssociateSensor}
+      >
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          {sensorFormError && <Alert severity="error">{sensorFormError}</Alert>}
+
+          <TextField
+            label="Número de série"
+            value={sensorForm.serialNumber}
+            onChange={(event) =>
+              setSensorForm((prev) => ({ ...prev, serialNumber: event.target.value }))
+            }
+            autoFocus
+            fullWidth
+          />
+
+          <TextField
+            select
+            label="Modelo"
+            value={sensorForm.model}
+            onChange={(event) =>
+              setSensorForm((prev) => ({ ...prev, model: event.target.value as SensorModel }))
+            }
+            helperText={
+              activeMachineType === 'Bomba'
+                ? 'TcAg e TcAs não são compatíveis com máquinas do tipo Bomba'
+                : undefined
+            }
+            fullWidth
+          >
+            {SENSOR_MODELS.map((model) => {
+              const disabled =
+                activeMachineType === 'Bomba' && PUMP_RESTRICTED_MODELS.includes(model);
+
+              return (
+                <MenuItem key={model} value={model} disabled={disabled}>
+                  {model}
+                </MenuItem>
+              );
+            })}
+          </TextField>
+        </Stack>
+      </FormDialog>
     </Box>
   );
 }

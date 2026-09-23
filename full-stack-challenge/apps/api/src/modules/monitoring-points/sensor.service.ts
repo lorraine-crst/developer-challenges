@@ -1,4 +1,4 @@
-import type { MachineType, SensorModel } from '@prisma/client';
+import type { MachineType, Sensor, SensorModel } from '@prisma/client';
 import { AppError } from '../../lib/errors';
 import { prisma } from '../../lib/prisma';
 import type { AssociateSensorInput } from './sensor.schema';
@@ -15,6 +15,15 @@ export function assertSensorCompatibleWithMachine(
       'Sensores TcAg e TcAs não são compatíveis com máquinas do tipo Bomba',
     );
   }
+}
+
+export function serializeSensor<T extends { model: SensorModel }>(
+  sensor: T,
+): Omit<T, 'model'> & { model: 'TcAg' | 'TcAs' | 'HF+' } {
+  return {
+    ...sensor,
+    model: sensor.model === 'HF_PLUS' ? 'HF+' : sensor.model,
+  };
 }
 
 export async function associate(monitoringPointId: string, data: AssociateSensorInput) {
@@ -43,11 +52,13 @@ export async function associate(monitoringPointId: string, data: AssociateSensor
     throw new AppError(409, 'A sensor with this serial number already exists');
   }
 
-  return prisma.sensor.create({
+  const sensor: Sensor = await prisma.sensor.create({
     data: {
       serialNumber: data.serialNumber,
       model,
       monitoringPointId,
     },
   });
+
+  return serializeSensor(sensor);
 }

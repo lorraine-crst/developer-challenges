@@ -5,6 +5,7 @@ import type {
   ListMonitoringPointsQuery,
   UpdateMonitoringPointInput,
 } from './monitoring-point.schema';
+import { serializeSensor } from './sensor.service';
 
 async function ensureMachineExists(machineId: string) {
   const machine = await prisma.machine.findUnique({ where: { id: machineId } });
@@ -27,11 +28,16 @@ async function ensureExists(id: string) {
 export async function findByMachine(machineId: string) {
   await ensureMachineExists(machineId);
 
-  return prisma.monitoringPoint.findMany({
+  const points = await prisma.monitoringPoint.findMany({
     where: { machineId },
     include: { sensor: true },
     orderBy: { createdAt: 'desc' },
   });
+
+  return points.map((point) => ({
+    ...point,
+    sensor: point.sensor ? serializeSensor(point.sensor) : null,
+  }));
 }
 
 export async function create(machineId: string, data: CreateMonitoringPointInput) {
@@ -72,7 +78,7 @@ export async function list(query: ListMonitoringPointsQuery) {
 
   const orderBy = buildOrderBy(sortBy, order);
 
-  const [items, total] = await Promise.all([
+  const [rawItems, total] = await Promise.all([
     prisma.monitoringPoint.findMany({
       skip: (page - 1) * limit,
       take: limit,
@@ -81,6 +87,11 @@ export async function list(query: ListMonitoringPointsQuery) {
     }),
     prisma.monitoringPoint.count(),
   ]);
+
+  const items = rawItems.map((point) => ({
+    ...point,
+    sensor: point.sensor ? serializeSensor(point.sensor) : null,
+  }));
 
   return { items, total, page, limit };
 }
