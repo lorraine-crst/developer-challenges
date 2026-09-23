@@ -14,7 +14,7 @@ export const createReadingsSchema = z
 export type CreateReadingsInput = z.infer<typeof createReadingsSchema>;
 
 export const listReadingsQuerySchema = z.object({
-  seriesName: z.string().min(1, 'Informe o nome da série').default(''),
+  seriesName: z.string().optional(),
   from: z.coerce.date().optional(),
   to: z.coerce.date().optional(),
 });
