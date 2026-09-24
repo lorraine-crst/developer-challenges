@@ -32,7 +32,7 @@ model User {
 
 model Machine {
   id               String            @id @default(cuid())
-  name             String
+  name             String            @unique
   type             MachineType
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -51,7 +51,7 @@ model MonitoringPoint {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  @@index([machineId])
+  @@unique([machineId, name])
   @@map("monitoring_points")
 }
 

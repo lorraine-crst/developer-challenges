@@ -9,7 +9,19 @@ export function findAll() {
   });
 }
 
-export function create(data: CreateMachineInput) {
+async function ensureNameAvailable(name: string, excludeId?: string) {
+  const existing = await prisma.machine.findFirst({
+    where: { name, ...(excludeId ? { id: { not: excludeId } } : {}) },
+  });
+
+  if (existing) {
+    throw new AppError(409, 'Já existe uma máquina com este nome');
+  }
+}
+
+export async function create(data: CreateMachineInput) {
+  await ensureNameAvailable(data.name);
+
   return prisma.machine.create({ data });
 }
 
@@ -25,6 +37,10 @@ async function ensureExists(id: string) {
 
 export async function update(id: string, data: UpdateMachineInput) {
   const machine = await ensureExists(id);
+
+  if (data.name && data.name !== machine.name) {
+    await ensureNameAvailable(data.name, id);
+  }
 
   if (data.type && data.type !== machine.type) {
     const points = await prisma.monitoringPoint.findMany({

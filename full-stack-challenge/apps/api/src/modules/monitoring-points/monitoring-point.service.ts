@@ -25,6 +25,16 @@ async function ensureExists(id: string) {
   return point;
 }
 
+async function ensurePointNameAvailable(machineId: string, name: string, excludeId?: string) {
+  const existing = await prisma.monitoringPoint.findFirst({
+    where: { machineId, name, ...(excludeId ? { id: { not: excludeId } } : {}) },
+  });
+
+  if (existing) {
+    throw new AppError(409, 'Já existe um ponto de monitoramento com este nome nesta máquina');
+  }
+}
+
 export async function findByMachine(machineId: string) {
   await ensureMachineExists(machineId);
 
@@ -42,6 +52,7 @@ export async function findByMachine(machineId: string) {
 
 export async function create(machineId: string, data: CreateMonitoringPointInput) {
   await ensureMachineExists(machineId);
+  await ensurePointNameAvailable(machineId, data.name);
 
   return prisma.monitoringPoint.create({
     data: { ...data, machineId },
@@ -49,7 +60,11 @@ export async function create(machineId: string, data: CreateMonitoringPointInput
 }
 
 export async function update(id: string, data: UpdateMonitoringPointInput) {
-  await ensureExists(id);
+  const point = await ensureExists(id);
+
+  if (data.name && data.name !== point.name) {
+    await ensurePointNameAvailable(point.machineId, data.name, id);
+  }
 
   return prisma.monitoringPoint.update({ where: { id }, data });
 }
