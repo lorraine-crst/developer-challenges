@@ -14,6 +14,8 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
   XAxis,
@@ -32,6 +34,21 @@ interface LatencyMeasurement {
   serverMs: number | null;
 }
 
+interface TemperaturePoint {
+  date: string;
+  average: number;
+}
+
+interface TemperatureSeriesByType {
+  Bomba: TemperaturePoint[];
+  Ventilador: TemperaturePoint[];
+}
+
+function formatShortDate(isoDate: string) {
+  const [, month, day] = isoDate.split('-');
+  return `${day}/${month}`;
+}
+
 export default function DashboardPage() {
   const dispatch = useAppDispatch();
   const { items: machines, status: machinesStatus } = useAppSelector((state) => state.machines);
@@ -41,6 +58,9 @@ export default function DashboardPage() {
 
   const [measuring, setMeasuring] = useState(false);
   const [latency, setLatency] = useState<LatencyMeasurement | null>(null);
+
+  const [temperatureSeries, setTemperatureSeries] = useState<TemperatureSeriesByType | null>(null);
+  const [temperatureStatus, setTemperatureStatus] = useState<'idle' | 'loading' | 'succeeded' | 'failed'>('idle');
 
   useEffect(() => {
     if (machines.length === 0) {
@@ -75,6 +95,22 @@ export default function DashboardPage() {
     void measureLatency();
   }, []);
 
+  useEffect(() => {
+    async function loadTemperatureSeries() {
+      setTemperatureStatus('loading');
+
+      try {
+        const response = await api.get<TemperatureSeriesByType>('/stats/average-temperature-by-type');
+        setTemperatureSeries(response.data);
+        setTemperatureStatus('succeeded');
+      } catch {
+        setTemperatureStatus('failed');
+      }
+    }
+
+    void loadTemperatureSeries();
+  }, []);
+
   const bombaCount = machines.filter((machine) => machine.type === 'Bomba').length;
   const ventiladorCount = machines.filter((machine) => machine.type === 'Ventilador').length;
 
@@ -87,7 +123,7 @@ export default function DashboardPage() {
 
   return (
     <Box>
-      <PageHeader title="Painel" subtitle="Resumo do parque de ativos monitorados" />
+            <PageHeader title="Dashboard" subtitle="Resumo do parque de ativos monitorados" />
 
       <Box sx={{ px: { xs: 2, sm: 4 } }}>
         <Box
@@ -128,7 +164,7 @@ export default function DashboardPage() {
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: '1fr 1fr 1fr' },
             gap: 2,
           }}
         >
@@ -156,6 +192,64 @@ export default function DashboardPage() {
                       ))}
                     </Bar>
                   </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Temperatura média por tipo
+              </Typography>
+
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                Bomba
+              </Typography>
+              {temperatureStatus === 'loading' ? (
+                <Skeleton height={140} />
+              ) : (
+                <ResponsiveContainer width="100%" height={140}>
+                  <LineChart data={temperatureSeries?.Bomba ?? []}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatShortDate} />
+                    <YAxis
+                      tick={{ fontSize: 10 }}
+                      width={32}
+                      domain={['auto', 'auto']}
+                      tickFormatter={(value: number) => value.toFixed(0)}
+                    />
+                    <RechartsTooltip
+                      labelFormatter={formatShortDate}
+                      formatter={(value: number) => [`${value.toFixed(1)} °C`, 'Média']}
+                    />
+                    <Line type="monotone" dataKey="average" stroke="#3B162C" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2, mb: 0.5 }}>
+                Ventilador
+              </Typography>
+              {temperatureStatus === 'loading' ? (
+                <Skeleton height={140} />
+              ) : (
+                <ResponsiveContainer width="100%" height={140}>
+                  <LineChart data={temperatureSeries?.Ventilador ?? []}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={formatShortDate} />
+                    <YAxis
+                      tick={{ fontSize: 10 }}
+                      width={32}
+                      domain={['auto', 'auto']}
+                      tickFormatter={(value: number) => value.toFixed(0)}
+                    />
+                    <RechartsTooltip
+                      labelFormatter={formatShortDate}
+                      formatter={(value: number) => [`${value.toFixed(1)} °C`, 'Média']}
+                    />
+                    <Line type="monotone" dataKey="average" stroke="#ECA742" strokeWidth={2} dot={false} />
+                  </LineChart>
                 </ResponsiveContainer>
               )}
             </CardContent>

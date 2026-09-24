@@ -78,6 +78,43 @@ function formatMetric(value: number | null | undefined) {
   return value === null || value === undefined ? '—' : value.toFixed(2);
 }
 
+function computeForecast(readings: { datetime: string; value: number }[], daysAhead: number) {
+  if (readings.length < 2) return [];
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  const t0 = new Date(readings[0].datetime).getTime();
+
+  const xs = readings.map((r) => (new Date(r.datetime).getTime() - t0) / dayMs);
+  const ys = readings.map((r) => r.value);
+  const n = xs.length;
+
+  const sumX = xs.reduce((acc, x) => acc + x, 0);
+  const sumY = ys.reduce((acc, y) => acc + y, 0);
+  const sumXY = xs.reduce((acc, x, i) => acc + x * ys[i], 0);
+  const sumX2 = xs.reduce((acc, x) => acc + x * x, 0);
+
+  const denominator = n * sumX2 - sumX * sumX;
+  if (denominator === 0) return [];
+
+  const slope = (n * sumXY - sumX * sumY) / denominator;
+  const intercept = (sumY - slope * sumX) / n;
+
+  const lastTimestamp = new Date(readings[n - 1].datetime).getTime();
+
+  return Array.from({ length: daysAhead }, (_, i) => {
+    const futureTimestamp = lastTimestamp + (i + 1) * dayMs;
+    const x = (futureTimestamp - t0) / dayMs;
+    const predicted = slope * x + intercept;
+    const isoDate = new Date(futureTimestamp).toISOString();
+
+    return {
+      datetime: isoDate,
+      label: formatDateLabel(isoDate),
+      forecast: predicted,
+    };
+  });
+}
+
 export default function MonitoringPointDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -142,6 +179,20 @@ export default function MonitoringPointDetailPage() {
     value: reading.value,
   }));
 
+  const forecastData = computeForecast(items, 7);
+  const lastReading = items[items.length - 1];
+
+  const forecastChartData = lastReading
+    ? [
+        {
+          datetime: lastReading.datetime,
+          label: formatDateLabel(lastReading.datetime),
+          forecast: lastReading.value,
+        },
+        ...forecastData,
+      ]
+    : forecastData;
+
   return (
     <Box>
       <Stack
@@ -179,7 +230,7 @@ export default function MonitoringPointDetailPage() {
           >
             {KNOWN_SERIES.map((series) => (
               <MenuItem key={series} value={series}>
-                {series}
+                {getSeriesInfo(series).label}
               </MenuItem>
             ))}
           </TextField>
@@ -288,7 +339,9 @@ export default function MonitoringPointDetailPage() {
               <TableHead>
                 <TableRow>
                   <TableCell>Data e hora</TableCell>
-                  <TableCell align="right">Valor</TableCell>
+                  <TableCell align="right">
+                    {activeSeriesInfo.label} ({activeSeriesInfo.unit})
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -302,12 +355,62 @@ export default function MonitoringPointDetailPage() {
             </Table>
           </Paper>
         )}
+
+        {forecastChartData.length > 1 && (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Previsão para os próximos 7 dias
+            </Typography>
+
+            <Paper variant="outlined" sx={{ pt: 2, pr: 2, pb: 2, pl: 0.5, height: 280 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={forecastChartData}
+                  margin={{ top: 5, right: 10, bottom: 5, left: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    domain={['auto', 'auto']}
+                    tickFormatter={(value: number) => value.toFixed(1)}
+                    width={40}
+                  />
+                  <RechartsTooltip
+                    labelFormatter={(_label, payload) =>
+                      payload?.[0]
+                        ? new Date(payload[0].payload.datetime).toLocaleString('pt-BR')
+                        : ''
+                    }
+                    formatter={(value: number) => [
+                      `${value.toFixed(2)} ${activeSeriesInfo.unit}`,
+                      'Previsão',
+                    ]}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="forecast"
+                    stroke="#ECA742"
+                    strokeWidth={2}
+                    strokeDasharray="6 4"
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Paper>
+
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              Estimativa por regressão linear simples a partir do histórico da série. Quanto mais
+              irregular a série (ex.: aceleração), menos confiável é essa tendência.
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       <ConfirmDialog
         open={deleteDialogOpen}
         title="Excluir série"
-        message={`Tem certeza que deseja excluir todos os dados da série "${activeSeriesName}"? Essa ação não pode ser desfeita.`}
+        message={`Tem certeza que deseja excluir todos os dados da série "${activeSeriesInfo.label}"? Essa ação não pode ser desfeita.`}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteDialogOpen(false)}

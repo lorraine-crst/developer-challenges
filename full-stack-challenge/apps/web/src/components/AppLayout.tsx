@@ -30,7 +30,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 const DRAWER_WIDTH = 260;
 
 const NAV_ITEMS = [
-  { label: 'Painel', path: '/', icon: <DashboardIcon /> },
+  { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
   { label: 'Máquinas', path: '/machines', icon: <PrecisionManufacturingIcon /> },
   { label: 'Pontos de monitoramento', path: '/monitoring-points', icon: <SensorsIcon /> },
 ];
@@ -133,7 +133,7 @@ export default function AppLayout() {
         {navList}
       </Drawer>
 
-            <Box
+      <Box
         component="main"
         sx={{
           flexGrow: 1,
