@@ -13,7 +13,7 @@ import VisibilityIcon from '@mui/icons-material/esm/VisibilityOutlined';
 import VisibilityOffIcon from '@mui/icons-material/esm/VisibilityOffOutlined';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../store/authSlice';
+import { clearError, login } from '../store/authSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { useTranslation } from '../lib/i18n/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
@@ -30,7 +30,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const status = useAppSelector((state) => state.auth.status);
   const error = useAppSelector((state) => state.auth.error);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,6 +44,10 @@ export default function LoginPage() {
       navigate('/', { replace: true });
     }
   }, [status, navigate]);
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [language, dispatch]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

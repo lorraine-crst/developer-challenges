@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express, { type Request, type Response } from 'express';
+import helmet from 'helmet';
 import { errorHandler, notFoundHandler } from './middlewares/error-handler';
 import { responseTime } from './middlewares/response-time';
 import { authRoutes } from './modules/auth/auth.routes';
@@ -13,6 +14,7 @@ import {
 
 export const app = express();
 
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(cors({ exposedHeaders: ['X-Response-Time'] }));
 app.use(responseTime);
 app.use(express.json());

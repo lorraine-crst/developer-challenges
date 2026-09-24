@@ -46,6 +46,10 @@ const MESSAGES = {
   },
   'auth.invalidEmailFormat': { pt: 'Formato de e-mail inválido', en: 'Invalid email format' },
   'auth.passwordRequired': { pt: 'Informe a senha', en: 'Enter the password' },
+  'auth.tooManyAttempts': {
+    pt: 'Muitas tentativas de login. Tente novamente em 5 minutos',
+    en: 'Too many login attempts. Please try again in 5 minutes',
+  },
   'reading.seriesNameRequired': { pt: 'Informe o nome da série', en: 'Enter the series name' },
   'reading.atLeastOneRequired': {
     pt: 'É necessário enviar ao menos uma leitura',
