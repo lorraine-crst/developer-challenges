@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const sensorModelSchema = z.enum(['TcAg', 'TcAs', 'HF+']);
 
 export const associateSensorSchema = z.object({
-  serialNumber: z.string().min(1, 'Informe o número de série do sensor'),
+  serialNumber: z.string().min(1, 'sensor.serialNumberRequired'),
   model: sensorModelSchema,
 });
 

@@ -15,6 +15,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../store/authSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useTranslation } from '../lib/i18n/LanguageContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -28,6 +30,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const status = useAppSelector((state) => state.auth.status);
   const error = useAppSelector((state) => state.auth.error);
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,11 +51,11 @@ export default function LoginPage() {
     const errors: FieldErrors = {};
 
     if (!EMAIL_PATTERN.test(email)) {
-      errors.email = 'Informe um e-mail válido';
+      errors.email = t('login.emailInvalid');
     }
 
     if (password.length === 0) {
-      errors.password = 'Informe sua senha';
+      errors.password = t('login.passwordRequired');
     }
 
     setFieldErrors(errors);
@@ -65,7 +68,17 @@ export default function LoginPage() {
   }
 
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: { xs: 'column', sm: 'row' } }}>
+      <LanguageSwitcher
+        sx={{
+          position: 'fixed',
+          top: 16,
+          right: 16,
+          zIndex: 10,
+          color: { xs: 'primary.main', sm: '#fff' },
+        }}
+      />
+
       <Box
         sx={{
           flex: 1,
@@ -77,11 +90,9 @@ export default function LoginPage() {
         }}
       >
         <Box sx={{ width: '100%', maxWidth: 400 }}>
-          <Stack spacing={1} sx={{ mb: 4, textAlign: { xs: 'center', md: 'left' } }}>
-            <Typography variant="h1">Boas-vindas!</Typography>
-            <Typography color="text.secondary">
-              Preencha as informações para acessar sua conta
-            </Typography>
+          <Stack spacing={1} sx={{ mb: 4, textAlign: { xs: 'center', sm: 'left' } }}>
+            <Typography variant="h1">{t('login.title')}</Typography>
+            <Typography color="text.secondary">{t('login.subtitle')}</Typography>
           </Stack>
 
           <form onSubmit={handleSubmit} noValidate>
@@ -89,7 +100,7 @@ export default function LoginPage() {
               {error && <Alert severity="error">{error}</Alert>}
 
               <TextField
-                label="E-mail"
+                label={t('login.email')}
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
@@ -102,7 +113,7 @@ export default function LoginPage() {
               />
 
               <TextField
-                label="Senha"
+                label={t('login.password')}
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
@@ -134,7 +145,7 @@ export default function LoginPage() {
                 fullWidth
                 sx={{ py: 1.5 }}
               >
-                {isSubmitting ? 'Entrando...' : 'Entrar com e-mail e senha'}
+                {isSubmitting ? t('login.submitting') : t('login.submit')}
               </Button>
             </Stack>
           </form>
@@ -147,8 +158,8 @@ export default function LoginPage() {
           flexShrink: 0,
           flexDirection: 'column',
           justifyContent: 'center',
-          width: { xs: '100%', md: '45%' },
-          p: { xs: 4, md: 6 },
+          width: { xs: '100%', sm: '45%' },
+          p: { xs: 4, sm: 6 },
           position: 'relative',
           overflow: 'hidden',
           background: 'linear-gradient(135deg, #3B162C 0%, #250d1c 100%)',
@@ -157,11 +168,12 @@ export default function LoginPage() {
         <SensorsIcon
           sx={{
             position: 'absolute',
-            fontSize: { xs: 200, md: 420 },
+            fontSize: { xs: 200, sm: 420 },
             opacity: 0.06,
             top: -60,
             right: -80,
             color: '#fff',
+            pointerEvents: 'none',
           }}
         />
 
@@ -172,7 +184,7 @@ export default function LoginPage() {
           DynaPredict
         </Typography>
         <Typography sx={{ color: 'rgba(255,255,255,0.8)', maxWidth: 360 }}>
-          Sua parceira especialista no monitoramento de saúde e performance de ativos.
+          {t('login.brandTagline')}
         </Typography>
       </Box>
     </Box>

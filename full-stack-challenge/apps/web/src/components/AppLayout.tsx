@@ -26,14 +26,10 @@ import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { logout } from '../store/authSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useTranslation } from '../lib/i18n/LanguageContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const DRAWER_WIDTH = 260;
-
-const NAV_ITEMS = [
-  { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
-  { label: 'Máquinas', path: '/machines', icon: <PrecisionManufacturingIcon /> },
-  { label: 'Pontos de monitoramento', path: '/monitoring-points', icon: <SensorsIcon /> },
-];
 
 export default function AppLayout() {
   const theme = useTheme();
@@ -41,9 +37,16 @@ export default function AppLayout() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
+  const { t } = useTranslation();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+
+  const navItems = [
+    { label: t('nav.dashboard'), path: '/', icon: <DashboardIcon /> },
+    { label: t('nav.machines'), path: '/machines', icon: <PrecisionManufacturingIcon /> },
+    { label: t('nav.monitoringPoints'), path: '/monitoring-points', icon: <SensorsIcon /> },
+  ];
 
   function handleLogout() {
     setMenuAnchor(null);
@@ -52,7 +55,7 @@ export default function AppLayout() {
 
   const navList = (
     <List sx={{ px: 1 }}>
-      {NAV_ITEMS.map((item) => (
+      {navItems.map((item) => (
         <ListItemButton
           key={item.path}
           component={Link}
@@ -92,6 +95,8 @@ export default function AppLayout() {
           </Typography>
 
           <Stack direction="row" alignItems="center" spacing={1.5}>
+            <LanguageSwitcher sx={{ color: 'inherit' }} />
+
             <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
               {user?.name}
             </Typography>
@@ -111,7 +116,7 @@ export default function AppLayout() {
               <ListItemIcon>
                 <LogoutIcon fontSize="small" />
               </ListItemIcon>
-              Sair
+              {t('common.logout')}
             </MenuItem>
           </Menu>
         </Toolbar>

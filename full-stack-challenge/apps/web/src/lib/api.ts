@@ -1,5 +1,6 @@
 import type { ApiErrorResponse } from '@dynamox/types';
 import axios from 'axios';
+import { dictionaries, getStoredLanguage } from './i18n/translations';
 
 const TOKEN_STORAGE_KEY = 'dynamox.token';
 
@@ -26,13 +27,17 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  config.headers['X-Language'] = getStoredLanguage();
+
   return config;
 });
 
 export function extractErrorMessage(error: unknown): string {
+  const language = getStoredLanguage();
+
   if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    return error.response?.data?.error ?? 'Não foi possível conectar ao servidor';
+    return error.response?.data?.error ?? dictionaries[language]['common.connectionError'];
   }
 
-  return 'Erro inesperado';
+  return dictionaries[language]['common.unexpectedError'];
 }

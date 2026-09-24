@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const createMonitoringPointSchema = z.object({
-  name: z.string().min(1, 'Informe o nome do ponto de monitoramento'),
+  name: z.string().min(1, 'monitoringPoint.nameRequired'),
 });
 
 export const updateMonitoringPointSchema = createMonitoringPointSchema.partial();

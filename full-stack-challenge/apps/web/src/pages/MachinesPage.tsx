@@ -31,6 +31,7 @@ import {
 } from '../store/machineSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import type { Machine, MachineType } from '@dynamox/types';
+import { useTranslation } from '../lib/i18n/LanguageContext';
 
 const MACHINE_TYPES: MachineType[] = ['Bomba', 'Ventilador'];
 
@@ -48,6 +49,7 @@ interface FeedbackState {
 
 export default function MachinesPage() {
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
   const { items, status } = useAppSelector((state) => state.machines);
 
   const [machineToDelete, setMachineToDelete] = useState<Machine | null>(null);
@@ -60,6 +62,10 @@ export default function MachinesPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
+
+  function machineTypeLabel(type: MachineType) {
+    return type === 'Bomba' ? t('machineType.pump') : t('machineType.fan');
+  }
 
   useEffect(() => {
     if (status === 'idle') {
@@ -87,12 +93,12 @@ export default function MachinesPage() {
 
   async function handleSubmit() {
     if (!form.name.trim()) {
-      setFormError('Informe o nome da máquina');
+      setFormError(t('machines.nameRequired'));
       return;
     }
 
     if (!form.type) {
-      setFormError('Selecione o tipo da máquina');
+      setFormError(t('machines.typeRequired'));
       return;
     }
 
@@ -108,13 +114,13 @@ export default function MachinesPage() {
     setSubmitting(false);
 
     if (createMachine.rejected.match(result) || updateMachine.rejected.match(result)) {
-      setFormError(result.payload ?? 'Não foi possível salvar a máquina');
+      setFormError(result.payload ?? t('machines.saveError'));
       return;
     }
 
     setFormOpen(false);
     setFeedback({
-      message: editingMachine ? 'Máquina atualizada com sucesso' : 'Máquina criada com sucesso',
+      message: editingMachine ? t('machines.updateSuccess') : t('machines.createSuccess'),
       severity: 'success',
     });
   }
@@ -129,21 +135,21 @@ export default function MachinesPage() {
 
     if (deleteMachine.rejected.match(result)) {
       setFeedback({
-        message: result.payload ?? 'Não foi possível excluir a máquina',
+        message: result.payload ?? t('machines.deleteError'),
         severity: 'error',
       });
       return;
     }
 
-    setFeedback({ message: 'Máquina excluída com sucesso', severity: 'success' });
+    setFeedback({ message: t('machines.deleteSuccess'), severity: 'success' });
   }
 
   return (
     <Box>
       <PageHeader
-        title="Máquinas"
-        subtitle="Gerencie o parque de ativos monitorados"
-        actionLabel="Nova máquina"
+        title={t('nav.machines')}
+        subtitle={t('machines.subtitle')}
+        actionLabel={t('machines.newMachine')}
         onAction={openCreateForm}
       />
 
@@ -157,7 +163,7 @@ export default function MachinesPage() {
     </Stack>
   ) : items.length === 0 ? (
     <Typography sx={{ p: 4 }} color="text.secondary" align="center">
-      Nenhuma máquina cadastrada ainda.
+      {t('machines.empty')}
     </Typography>
   ) : (
     <Table
@@ -176,9 +182,9 @@ export default function MachinesPage() {
     >
       <TableHead>
         <TableRow>
-          <TableCell>Nome</TableCell>
-          <TableCell>Tipo</TableCell>
-          <TableCell align="right">Ações</TableCell>
+          <TableCell>{t('machines.columnName')}</TableCell>
+          <TableCell>{t('machines.columnType')}</TableCell>
+          <TableCell align="right">{t('machines.columnActions')}</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -187,7 +193,7 @@ export default function MachinesPage() {
             <TableCell>{machine.name}</TableCell>
             <TableCell>
               <Chip
-                label={machine.type}
+                label={machineTypeLabel(machine.type)}
                 size="small"
                 color={machine.type === 'Bomba' ? 'primary' : 'secondary'}
               />
@@ -210,7 +216,7 @@ export default function MachinesPage() {
 
       <FormDialog
         open={formOpen}
-        title={editingMachine ? 'Editar máquina' : 'Nova máquina'}
+        title={editingMachine ? t('machines.editTitle') : t('machines.newMachine')}
         loading={submitting}
         onClose={closeForm}
         onSubmit={handleSubmit}
@@ -219,7 +225,7 @@ export default function MachinesPage() {
           {formError && <Alert severity="error">{formError}</Alert>}
 
           <TextField
-            label="Nome"
+            label={t('machines.columnName')}
             value={form.name}
             onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
             autoFocus
@@ -228,7 +234,7 @@ export default function MachinesPage() {
 
           <TextField
             select
-            label="Tipo"
+            label={t('machines.columnType')}
             value={form.type}
             onChange={(event) =>
               setForm((prev) => ({ ...prev, type: event.target.value as MachineType }))
@@ -237,7 +243,7 @@ export default function MachinesPage() {
           >
             {MACHINE_TYPES.map((type) => (
               <MenuItem key={type} value={type}>
-                {type}
+                {machineTypeLabel(type)}
               </MenuItem>
             ))}
           </TextField>
@@ -246,8 +252,8 @@ export default function MachinesPage() {
 
       <ConfirmDialog
         open={machineToDelete !== null}
-        title="Excluir máquina"
-        message={`Tem certeza que deseja excluir "${machineToDelete?.name}"? Essa ação não pode ser desfeita.`}
+        title={t('machines.deleteConfirmTitle')}
+        message={`${t('machines.deleteConfirmPrefix')}"${machineToDelete?.name}"${t('machines.deleteConfirmSuffix')}`}
         loading={deleting}
         onConfirm={handleConfirmDelete}
         onCancel={() => setMachineToDelete(null)}

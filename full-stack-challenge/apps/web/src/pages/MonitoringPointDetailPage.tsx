@@ -37,6 +37,8 @@ import PageHeader from '../components/PageHeader';
 import { deleteReadings, fetchReadings, clearReadings } from '../store/readingsSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { computeForecast, formatDateLabel } from '../lib/forecast';
+import { useTranslation } from '../lib/i18n/LanguageContext';
+import type { TranslationKey } from '../lib/i18n/translations';
 
 const DEFAULT_SERIES = 'temperature';
 
@@ -50,19 +52,25 @@ const KNOWN_SERIES = [
   'accelerationRms/z',
 ];
 
-const SERIES_INFO: Record<string, { label: string; unit: string }> = {
-  temperature: { label: 'Temperatura', unit: '°C' },
-  'velocityRms/x': { label: 'Velocidade RMS X', unit: 'mm/s' },
-  'velocityRms/y': { label: 'Velocidade RMS Y', unit: 'mm/s' },
-  'velocityRms/z': { label: 'Velocidade RMS Z', unit: 'mm/s' },
-  'accelerationRms/x': { label: 'Aceleração RMS X', unit: 'g' },
-  'accelerationRms/y': { label: 'Aceleração RMS Y', unit: 'g' },
-  'accelerationRms/z': { label: 'Aceleração RMS Z', unit: 'g' },
+const SERIES_UNITS: Record<string, string> = {
+  temperature: '°C',
+  'velocityRms/x': 'mm/s',
+  'velocityRms/y': 'mm/s',
+  'velocityRms/z': 'mm/s',
+  'accelerationRms/x': 'g',
+  'accelerationRms/y': 'g',
+  'accelerationRms/z': 'g',
 };
 
-function getSeriesInfo(seriesName: string) {
-  return SERIES_INFO[seriesName] ?? { label: seriesName, unit: '' };
-}
+const SERIES_LABEL_KEYS: Record<string, TranslationKey> = {
+  temperature: 'series.temperature',
+  'velocityRms/x': 'series.velocityX',
+  'velocityRms/y': 'series.velocityY',
+  'velocityRms/z': 'series.velocityZ',
+  'accelerationRms/x': 'series.accelerationX',
+  'accelerationRms/y': 'series.accelerationY',
+  'accelerationRms/z': 'series.accelerationZ',
+};
 
 interface LocationState {
   machineName?: string;
@@ -79,9 +87,19 @@ export default function MonitoringPointDetailPage() {
   const location = useLocation();
   const { machineName, pointName } = (location.state as LocationState | null) ?? {};
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
   const { items, metrics, activeSeriesName, status } = useAppSelector(
     (state) => state.readings,
   );
+
+  function getSeriesInfo(seriesName: string) {
+    const labelKey = SERIES_LABEL_KEYS[seriesName];
+
+    return {
+      label: labelKey ? t(labelKey) : seriesName,
+      unit: SERIES_UNITS[seriesName] ?? '',
+    };
+  }
 
   const activeSeriesInfo = getSeriesInfo(activeSeriesName ?? DEFAULT_SERIES);
 
@@ -122,13 +140,13 @@ export default function MonitoringPointDetailPage() {
 
     if (deleteReadings.rejected.match(result)) {
       setFeedback({
-        message: result.payload ?? 'Não foi possível excluir a série',
+        message: result.payload ?? t('monitoringPointDetail.deleteSeriesError'),
         severity: 'error',
       });
       return;
     }
 
-    setFeedback({ message: 'Série excluída com sucesso', severity: 'success' });
+    setFeedback({ message: t('monitoringPointDetail.deleteSeriesSuccess'), severity: 'success' });
   }
 
   const chartData = items.map((reading) => ({
@@ -165,11 +183,14 @@ export default function MonitoringPointDetailPage() {
         <Typography variant="body2" color="text.secondary">
           {machineName && pointName
             ? `${machineName} — ${pointName}`
-            : 'Voltar para pontos de monitoramento'}
+            : t('monitoringPointDetail.backDefault')}
         </Typography>
       </Stack>
 
-      <PageHeader title="Série temporal" subtitle="Detalhe do ponto de monitoramento" />
+      <PageHeader
+        title={t('monitoringPointDetail.title')}
+        subtitle={t('monitoringPointDetail.subtitle')}
+      />
 
       <Box sx={{ px: { xs: 2, sm: 4 } }}>
         <Stack
@@ -181,7 +202,7 @@ export default function MonitoringPointDetailPage() {
         >
           <TextField
             select
-            label="Série"
+            label={t('monitoringPointDetail.seriesLabel')}
             value={activeSeriesName ?? DEFAULT_SERIES}
             onChange={(event) => handleSeriesChange(event.target.value)}
             sx={{ minWidth: 240 }}
@@ -199,7 +220,7 @@ export default function MonitoringPointDetailPage() {
             disabled={items.length === 0}
             onClick={() => setDeleteDialogOpen(true)}
           >
-            Excluir dados desta série
+            {t('monitoringPointDetail.deleteSeriesButton')}
           </Button>
         </Stack>
 
@@ -214,7 +235,7 @@ export default function MonitoringPointDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="body2" color="text.secondary">
-                Total de leituras
+                {t('monitoringPointDetail.totalReadings')}
               </Typography>
               <Typography variant="h2">{metrics?.count ?? 0}</Typography>
             </CardContent>
@@ -222,7 +243,7 @@ export default function MonitoringPointDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="body2" color="text.secondary">
-                Mínimo
+                {t('monitoringPointDetail.minimum')}
               </Typography>
               <Typography variant="h2">{formatMetric(metrics?.min)}</Typography>
             </CardContent>
@@ -230,7 +251,7 @@ export default function MonitoringPointDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="body2" color="text.secondary">
-                Máximo
+                {t('monitoringPointDetail.maximum')}
               </Typography>
               <Typography variant="h2">{formatMetric(metrics?.max)}</Typography>
             </CardContent>
@@ -238,7 +259,7 @@ export default function MonitoringPointDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="body2" color="text.secondary">
-                Média
+                {t('dashboard.average')}
               </Typography>
               <Typography variant="h2">{formatMetric(metrics?.avg)}</Typography>
             </CardContent>
@@ -246,8 +267,8 @@ export default function MonitoringPointDetailPage() {
         </Box>
 
         <Tabs value={view} onChange={(_event, value) => setView(value)} sx={{ mb: 2 }}>
-          <Tab label="Gráfico" value="chart" />
-          <Tab label="Tabela" value="table" />
+          <Tab label={t('monitoringPointDetail.chartTab')} value="chart" />
+          <Tab label={t('monitoringPointDetail.tableTab')} value="table" />
         </Tabs>
 
         {status === 'loading' ? (
@@ -255,7 +276,7 @@ export default function MonitoringPointDetailPage() {
         ) : chartData.length === 0 ? (
           <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
             <Typography color="text.secondary">
-              Nenhuma leitura encontrada para esta série.
+              {t('monitoringPointDetail.noReadingsFound')}
             </Typography>
           </Paper>
         ) : view === 'chart' ? (
@@ -296,7 +317,7 @@ export default function MonitoringPointDetailPage() {
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Data e hora</TableCell>
+                  <TableCell>{t('monitoringPointDetail.dateTimeColumn')}</TableCell>
                   <TableCell align="right">
                     {activeSeriesInfo.label} ({activeSeriesInfo.unit})
                   </TableCell>
@@ -317,7 +338,7 @@ export default function MonitoringPointDetailPage() {
         {forecastChartData.length > 1 && (
           <Box sx={{ mt: 3 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
-              Previsão para os próximos 7 dias
+              {t('monitoringPointDetail.forecastTitle')}
             </Typography>
 
             <Paper variant="outlined" sx={{ pt: 2, pr: 2, pb: 2, pl: 0.5, height: 280 }}>
@@ -342,7 +363,7 @@ export default function MonitoringPointDetailPage() {
                     }
                     formatter={(value: number) => [
                       `${value.toFixed(2)} ${activeSeriesInfo.unit}`,
-                      'Previsão',
+                      t('monitoringPointDetail.forecastLabel'),
                     ]}
                   />
                   <Line
@@ -358,8 +379,7 @@ export default function MonitoringPointDetailPage() {
             </Paper>
 
             <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              Estimativa por regressão linear simples a partir do histórico da série. Quanto mais
-              irregular a série (ex.: aceleração), menos confiável é essa tendência.
+              {t('monitoringPointDetail.forecastDisclaimer')}
             </Typography>
           </Box>
         )}
@@ -367,8 +387,8 @@ export default function MonitoringPointDetailPage() {
 
       <ConfirmDialog
         open={deleteDialogOpen}
-        title="Excluir série"
-        message={`Tem certeza que deseja excluir todos os dados da série "${activeSeriesInfo.label}"? Essa ação não pode ser desfeita.`}
+        title={t('monitoringPointDetail.deleteSeriesTitle')}
+        message={`${t('monitoringPointDetail.deleteSeriesPrefix')}${activeSeriesInfo.label}${t('monitoringPointDetail.deleteSeriesSuffix')}`}
         loading={deleting}
         onConfirm={handleDelete}
         onCancel={() => setDeleteDialogOpen(false)}

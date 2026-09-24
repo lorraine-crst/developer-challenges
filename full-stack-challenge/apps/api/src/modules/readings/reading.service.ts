@@ -9,7 +9,7 @@ async function ensureMonitoringPointExists(monitoringPointId: string) {
   });
 
   if (!point) {
-    throw new AppError(404, 'Ponto de monitoramento não encontrado');
+    throw new AppError(404, 'monitoringPoint.notFound');
   }
 }
 
@@ -32,7 +32,7 @@ export async function findMany(monitoringPointId: string, query: ListReadingsQue
   await ensureMonitoringPointExists(monitoringPointId);
 
   if (!query.seriesName) {
-    throw new AppError(400, 'Informe o nome da série');
+    throw new AppError(400, 'reading.seriesNameRequired');
   }
 
   return prisma.reading.findMany({
@@ -52,7 +52,7 @@ export async function getMetrics(monitoringPointId: string, seriesName: string |
   await ensureMonitoringPointExists(monitoringPointId);
 
   if (!seriesName) {
-    throw new AppError(400, 'Informe o nome da série');
+    throw new AppError(400, 'reading.seriesNameRequired');
   }
 
   const result = await prisma.reading.aggregate({
@@ -75,7 +75,7 @@ export async function count(monitoringPointId: string, seriesName: string | unde
   await ensureMonitoringPointExists(monitoringPointId);
 
   if (!seriesName) {
-    throw new AppError(400, 'Informe o nome da série');
+    throw new AppError(400, 'reading.seriesNameRequired');
   }
 
   const total = await prisma.reading.count({
@@ -89,7 +89,7 @@ export async function removeSeries(monitoringPointId: string, seriesName: string
   await ensureMonitoringPointExists(monitoringPointId);
 
   if (!seriesName) {
-    throw new AppError(400, 'Informe o nome da série');
+    throw new AppError(400, 'reading.seriesNameRequired');
   }
 
   await prisma.reading.deleteMany({

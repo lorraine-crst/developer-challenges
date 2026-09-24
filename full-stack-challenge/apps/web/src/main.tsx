@@ -6,16 +6,19 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { store } from './store';
 import { theme } from './theme';
+import { LanguageProvider } from './lib/i18n/LanguageContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </ThemeProvider>
+      <LanguageProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ThemeProvider>
+      </LanguageProvider>
     </Provider>
   </StrictMode>,
 );

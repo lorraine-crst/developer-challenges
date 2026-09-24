@@ -6,6 +6,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
+import { useTranslation } from '../lib/i18n/LanguageContext';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -24,6 +25,8 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const { t } = useTranslation();
+
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="xs" fullWidth>
       <DialogTitle>{title}</DialogTitle>
@@ -32,10 +35,10 @@ export default function ConfirmDialog({
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel} disabled={loading}>
-          Cancelar
+          {t('common.cancel')}
         </Button>
         <Button onClick={onConfirm} color="error" variant="contained" disabled={loading}>
-          {loading ? 'Excluindo...' : 'Excluir'}
+          {loading ? t('common.deleting') : t('common.delete')}
         </Button>
       </DialogActions>
     </Dialog>

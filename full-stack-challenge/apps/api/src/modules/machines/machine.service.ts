@@ -15,7 +15,7 @@ async function ensureNameAvailable(name: string, excludeId?: string) {
   });
 
   if (existing) {
-    throw new AppError(409, 'Já existe uma máquina com este nome');
+    throw new AppError(409, 'machine.duplicateName');
   }
 }
 
@@ -29,7 +29,7 @@ async function ensureExists(id: string) {
   const machine = await prisma.machine.findUnique({ where: { id } });
 
   if (!machine) {
-    throw new AppError(404, 'Máquina não encontrada');
+    throw new AppError(404, 'machine.notFound');
   }
 
   return machine;

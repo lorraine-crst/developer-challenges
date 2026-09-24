@@ -17,13 +17,13 @@ export async function login({ email, password }: LoginInput) {
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
-    throw new AppError(401, 'E-mail ou senha inválidos');
+    throw new AppError(401, 'auth.invalidCredentials');
   }
 
   const passwordMatches = await bcrypt.compare(password, user.password);
 
   if (!passwordMatches) {
-    throw new AppError(401, 'E-mail ou senha inválidos');
+    throw new AppError(401, 'auth.invalidCredentials');
   }
 
   const token = jwt.sign({ sub: user.id }, env.JWT_SECRET, {

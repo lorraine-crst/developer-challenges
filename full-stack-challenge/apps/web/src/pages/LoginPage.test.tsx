@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { api } from '../lib/api';
 import { authReducer } from '../store/authSlice';
+import { LanguageProvider } from '../lib/i18n/LanguageContext';
 import LoginPage from './LoginPage';
 
 vi.mock('../lib/api', async () => {
@@ -22,9 +23,11 @@ function renderLoginPage() {
 
   render(
     <Provider store={store}>
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
+      <LanguageProvider>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </LanguageProvider>
     </Provider>,
   );
 }

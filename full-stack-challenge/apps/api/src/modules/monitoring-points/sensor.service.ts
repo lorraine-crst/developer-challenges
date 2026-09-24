@@ -10,10 +10,7 @@ export function assertSensorCompatibleWithMachine(
   model: SensorModel,
 ) {
   if (machineType === 'Bomba' && INCOMPATIBLE_PUMP_MODELS.includes(model)) {
-    throw new AppError(
-      422,
-      'Sensores TcAg e TcAs não são compatíveis com máquinas do tipo Bomba',
-    );
+    throw new AppError(422, 'sensor.incompatibleWithPump');
   }
 }
 
@@ -33,11 +30,11 @@ export async function associate(monitoringPointId: string, data: AssociateSensor
   });
 
   if (!point) {
-    throw new AppError(404, 'Ponto de monitoramento não encontrado');
+    throw new AppError(404, 'monitoringPoint.notFound');
   }
 
   if (point.sensor) {
-    throw new AppError(409, 'Este ponto de monitoramento já possui um sensor associado');
+    throw new AppError(409, 'sensor.alreadyAssociated');
   }
 
   const model = data.model === 'HF+' ? 'HF_PLUS' : data.model;
@@ -49,7 +46,7 @@ export async function associate(monitoringPointId: string, data: AssociateSensor
   });
 
   if (existingSerial) {
-    throw new AppError(409, 'Já existe um sensor com este número de série');
+    throw new AppError(409, 'sensor.duplicateSerialNumber');
   }
 
   const sensor: Sensor = await prisma.sensor.create({

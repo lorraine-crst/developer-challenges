@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const machineTypeSchema = z.enum(['Bomba', 'Ventilador']);
 
 export const createMachineSchema = z.object({
-  name: z.string().min(1, 'Informe o nome da máquina'),
+  name: z.string().min(1, 'machine.nameRequired'),
   type: machineTypeSchema,
 });
 
