@@ -5,6 +5,7 @@ import {
   CardContent,
   Chip,
   CircularProgress,
+  Link,
   Skeleton,
   Typography,
 } from '@mui/material';
@@ -123,7 +124,7 @@ export default function DashboardPage() {
 
   return (
     <Box>
-            <PageHeader title="Dashboard" subtitle="Resumo do parque de ativos monitorados" />
+      <PageHeader title="Dashboard" subtitle="Resumo do parque de ativos monitorados" />
 
       <Box sx={{ px: { xs: 2, sm: 4 } }}>
         <Box
@@ -297,6 +298,34 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Box>
+      </Box>
+
+      <Box
+        component="footer"
+        sx={{
+          mt: 4,
+          py: 3,
+          px: { xs: 2, sm: 4 },
+          textAlign: 'center',
+          borderTop: '1px solid',
+          borderColor: 'divider',
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Desafio Full-Stack Dynamox — desenvolvido por{' '}
+          <Link
+            href="https://github.com/lorraine-crst"
+            target="_blank"
+            rel="noreferrer"
+            color="inherit"
+          >
+            Lorraine Cristina
+          </Link>
+          , 2026
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          React · TypeScript · Redux Toolkit · MUI 5 · Node.js · Express · Prisma · PostgreSQL
+        </Typography>
       </Box>
     </Box>
   );

@@ -2,12 +2,15 @@ import {
   Alert,
   Box,
   Button,
-  Card,
-  CardContent,
+  IconButton,
+  InputAdornment,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
+import SensorsIcon from '@mui/icons-material/esm/SensorsOutlined';
+import VisibilityIcon from '@mui/icons-material/esm/VisibilityOutlined';
+import VisibilityOffIcon from '@mui/icons-material/esm/VisibilityOffOutlined';
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../store/authSlice';
@@ -28,6 +31,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const isSubmitting = status === 'loading';
@@ -61,21 +65,22 @@ export default function LoginPage() {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-      }}
-    >
-      <Card sx={{ width: '100%', maxWidth: 440 }}>
-        <CardContent sx={{ p: { xs: 3, sm: 5 } }}>
-          <Stack spacing={1} sx={{ mb: 4, textAlign: 'center' }}>
-            <Typography variant="h1">Entrar</Typography>
+    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+          bgcolor: '#FFFFFF',
+        }}
+      >
+        <Box sx={{ width: '100%', maxWidth: 400 }}>
+          <Stack spacing={1} sx={{ mb: 4, textAlign: { xs: 'center', md: 'left' } }}>
+            <Typography variant="h1">Boas-vindas!</Typography>
             <Typography color="text.secondary">
-              Acesse o monitoramento de condição de ativos
+              Preencha as informações para acessar sua conta
             </Typography>
           </Stack>
 
@@ -98,7 +103,7 @@ export default function LoginPage() {
 
               <TextField
                 label="Senha"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 error={Boolean(fieldErrors.password)}
@@ -106,6 +111,19 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required
                 fullWidth
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        edge="end"
+                        size="small"
+                      >
+                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
 
               <Button
@@ -120,8 +138,43 @@ export default function LoginPage() {
               </Button>
             </Stack>
           </form>
-        </CardContent>
-      </Card>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexShrink: 0,
+          flexDirection: 'column',
+          justifyContent: 'center',
+          width: { xs: '100%', md: '45%' },
+          p: { xs: 4, md: 6 },
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'linear-gradient(135deg, #3B162C 0%, #250d1c 100%)',
+        }}
+      >
+        <SensorsIcon
+          sx={{
+            position: 'absolute',
+            fontSize: { xs: 200, md: 420 },
+            opacity: 0.06,
+            top: -60,
+            right: -80,
+            color: '#fff',
+          }}
+        />
+
+        <Typography variant="h3" sx={{ color: '#fff', fontWeight: 700, mb: 1 }}>
+          Dynamox
+        </Typography>
+        <Typography variant="h1" sx={{ color: '#fff', fontSize: '2.25rem', mb: 2 }}>
+          DynaPredict
+        </Typography>
+        <Typography sx={{ color: 'rgba(255,255,255,0.8)', maxWidth: 360 }}>
+          Sua parceira especialista no monitoramento de saúde e performance de ativos.
+        </Typography>
+      </Box>
     </Box>
   );
 }
