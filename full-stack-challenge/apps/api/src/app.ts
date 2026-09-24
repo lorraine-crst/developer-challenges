@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express, { type Request, type Response } from 'express';
 import { errorHandler, notFoundHandler } from './middlewares/error-handler';
+import { responseTime } from './middlewares/response-time';
 import { authRoutes } from './modules/auth/auth.routes';
 import { machineRoutes } from './modules/machines/machine.routes';
 import { readingRoutes } from './modules/readings/reading.routes';
@@ -11,7 +12,8 @@ import {
 
 export const app = express();
 
-app.use(cors());
+app.use(cors({ exposedHeaders: ['X-Response-Time'] }));
+app.use(responseTime);
 app.use(express.json());
 
 app.get('/health', (_req: Request, res: Response) => {

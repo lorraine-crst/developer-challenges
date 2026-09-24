@@ -49,6 +49,20 @@ const KNOWN_SERIES = [
   'accelerationRms/z',
 ];
 
+const SERIES_INFO: Record<string, { label: string; unit: string }> = {
+  temperature: { label: 'Temperatura', unit: '°C' },
+  'velocityRms/x': { label: 'Velocidade RMS X', unit: 'mm/s' },
+  'velocityRms/y': { label: 'Velocidade RMS Y', unit: 'mm/s' },
+  'velocityRms/z': { label: 'Velocidade RMS Z', unit: 'mm/s' },
+  'accelerationRms/x': { label: 'Aceleração RMS X', unit: 'g' },
+  'accelerationRms/y': { label: 'Aceleração RMS Y', unit: 'g' },
+  'accelerationRms/z': { label: 'Aceleração RMS Z', unit: 'g' },
+};
+
+function getSeriesInfo(seriesName: string) {
+  return SERIES_INFO[seriesName] ?? { label: seriesName, unit: '' };
+}
+
 interface LocationState {
   machineName?: string;
   pointName?: string;
@@ -73,6 +87,8 @@ export default function MonitoringPointDetailPage() {
   const { items, metrics, activeSeriesName, status } = useAppSelector(
     (state) => state.readings,
   );
+
+  const activeSeriesInfo = getSeriesInfo(activeSeriesName ?? DEFAULT_SERIES);
 
   const [view, setView] = useState<'chart' | 'table'>('chart');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -251,7 +267,10 @@ export default function MonitoringPointDetailPage() {
                       ? new Date(payload[0].payload.datetime).toLocaleString('pt-BR')
                       : ''
                   }
-                  formatter={(value: number) => [value.toFixed(2), 'Valor']}
+                  formatter={(value: number) => [
+                    `${value.toFixed(2)} ${activeSeriesInfo.unit}`,
+                    activeSeriesInfo.label,
+                  ]}
                 />
                 <Line
                   type="monotone"
