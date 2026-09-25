@@ -57,7 +57,9 @@ const monitoringPointsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchMonitoringPoints.pending, (state) => {
-        state.status = 'loading';
+        if (state.items.length === 0) {
+          state.status = 'loading';
+        }
         state.error = null;
       })
       .addCase(fetchMonitoringPoints.fulfilled, (state, action) => {
