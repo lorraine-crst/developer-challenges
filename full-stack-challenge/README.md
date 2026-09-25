@@ -114,6 +114,7 @@ npm run dev
 - **Monitoring points:** list, create, edit and delete, linked to a machine, with names unique inside the same machine.
 - **Sensors:** add a sensor (`TcAg`, `TcAs` or `HF+`) to a monitoring point. `TcAg` and `TcAs` sensors are not allowed on `Pump` machines, checked both when the sensor is added and when the machine type changes.
 - **Time series:** chart view (Recharts) for each monitoring point, with series selection (temperature, velocity RMS, acceleration RMS) and metrics (min, max, average, count).
+- **Data import:** add one reading by hand, or upload a JSON file with several readings at once, directly from the monitoring point detail page. Sample files to try it: [15 readings](./sample-data/sample-readings-15.json), [30 readings](./sample-data/sample-readings-30.json), [60 readings](./sample-data/sample-readings-60.json).
 - **Dashboard:** machine and point summary, machines-by-type chart, average temperature by machine type, and a live latency widget.
 - **Internationalization (pt/en):** the whole interface, including API error messages, is translated. The chosen language is saved in the browser.
 
@@ -129,6 +130,13 @@ npm run dev
 - **Nx** (item 8.1): we chose a simple monorepo with npm workspaces instead. For this project's size (2 apps + 1 shared package), Nx would add setup complexity without a real benefit.
 - **Load balancer** (item 8.6): we chose to focus on the fundamentals first (full integration, correct tests, clear documentation) given the time we had, instead of adding more bonus items.
 - **Baseline code refactor** (item 8.3): does not apply. The challenge gives no baseline code; the project was built from scratch.
+
+## Additional improvements
+
+Beyond the challenge's own requirements and bonus list, a few extra additions came out of manual testing:
+
+1. **Time-series data import:** add one reading by hand, or upload a JSON file with several readings at once, directly from the monitoring point detail page.
+2. **Security hardening:** rate limiting on the login endpoint (blocks after repeated failed attempts) and security response headers with helmet.
 
 ## Tests
 

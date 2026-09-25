@@ -1,0 +1,152 @@
+[
+  {
+    "seriesName": "accelerationRms/x",
+    "datetime": "2026-09-20T08:00:00.000Z",
+    "value": 0.4
+  },
+  {
+    "seriesName": "accelerationRms/y",
+    "datetime": "2026-09-20T08:00:00.000Z",
+    "value": 0.35
+  },
+  {
+    "seriesName": "accelerationRms/z",
+    "datetime": "2026-09-20T08:00:00.000Z",
+    "value": 0.45
+  },
+  {
+    "seriesName": "temperature",
+    "datetime": "2026-09-20T08:00:00.000Z",
+    "value": 24
+  },
+  {
+    "seriesName": "velocityRms/x",
+    "datetime": "2026-09-20T08:00:00.000Z",
+    "value": 2.5
+  },
+  {
+    "seriesName": "velocityRms/y",
+    "datetime": "2026-09-20T08:00:00.000Z",
+    "value": 2.3
+  },
+  {
+    "seriesName": "velocityRms/z",
+    "datetime": "2026-09-20T08:00:00.000Z",
+    "value": 2.7
+  },
+  {
+    "seriesName": "accelerationRms/x",
+    "datetime": "2026-09-20T11:00:00.000Z",
+    "value": 0.9
+  },
+  {
+    "seriesName": "accelerationRms/y",
+    "datetime": "2026-09-20T11:00:00.000Z",
+    "value": 0.84
+  },
+  {
+    "seriesName": "accelerationRms/z",
+    "datetime": "2026-09-20T11:00:00.000Z",
+    "value": 0.95
+  },
+  {
+    "seriesName": "temperature",
+    "datetime": "2026-09-20T11:00:00.000Z",
+    "value": 25.08
+  },
+  {
+    "seriesName": "velocityRms/x",
+    "datetime": "2026-09-20T11:00:00.000Z",
+    "value": 3.06
+  },
+  {
+    "seriesName": "velocityRms/y",
+    "datetime": "2026-09-20T11:00:00.000Z",
+    "value": 2.85
+  },
+  {
+    "seriesName": "velocityRms/z",
+    "datetime": "2026-09-20T11:00:00.000Z",
+    "value": 3.27
+  },
+  {
+    "seriesName": "accelerationRms/x",
+    "datetime": "2026-09-20T14:00:00.000Z",
+    "value": 0.69
+  },
+  {
+    "seriesName": "accelerationRms/y",
+    "datetime": "2026-09-20T14:00:00.000Z",
+    "value": 0.63
+  },
+  {
+    "seriesName": "accelerationRms/z",
+    "datetime": "2026-09-20T14:00:00.000Z",
+    "value": 0.74
+  },
+  {
+    "seriesName": "temperature",
+    "datetime": "2026-09-20T14:00:00.000Z",
+    "value": 25.46
+  },
+  {
+    "seriesName": "velocityRms/x",
+    "datetime": "2026-09-20T14:00:00.000Z",
+    "value": 2.92
+  },
+  {
+    "seriesName": "velocityRms/y",
+    "datetime": "2026-09-20T14:00:00.000Z",
+    "value": 2.7
+  },
+  {
+    "seriesName": "velocityRms/z",
+    "datetime": "2026-09-20T14:00:00.000Z",
+    "value": 3.14
+  },
+  {
+    "seriesName": "accelerationRms/x",
+    "datetime": "2026-09-20T17:00:00.000Z",
+    "value": 0.1
+  },
+  {
+    "seriesName": "accelerationRms/y",
+    "datetime": "2026-09-20T17:00:00.000Z",
+    "value": 0.05
+  },
+  {
+    "seriesName": "accelerationRms/z",
+    "datetime": "2026-09-20T17:00:00.000Z",
+    "value": 0.16
+  },
+  {
+    "seriesName": "temperature",
+    "datetime": "2026-09-20T17:00:00.000Z",
+    "value": 25.46
+  },
+  {
+    "seriesName": "velocityRms/x",
+    "datetime": "2026-09-20T17:00:00.000Z",
+    "value": 2.4
+  },
+  {
+    "seriesName": "velocityRms/y",
+    "datetime": "2026-09-20T17:00:00.000Z",
+    "value": 2.17
+  },
+  {
+    "seriesName": "velocityRms/z",
+    "datetime": "2026-09-20T17:00:00.000Z",
+    "value": 2.63
+  },
+  {
+    "seriesName": "temperature",
+    "datetime": "2026-09-20T20:00:00.000Z",
+    "value": 25.96
+  },
+  {
+    "seriesName": "velocityRms/x",
+    "datetime": "2026-09-20T20:00:00.000Z",
+    "value": 2.38
+  }
+]

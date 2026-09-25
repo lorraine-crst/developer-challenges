@@ -117,7 +117,22 @@ export type TranslationKey =
   | 'series.velocityZ'
   | 'series.accelerationX'
   | 'series.accelerationY'
-  | 'series.accelerationZ';
+  | 'series.accelerationZ'
+  | 'monitoringPointDetail.importData'
+  | 'monitoringPointDetail.importing'
+  | 'monitoringPointDetail.importSuccess'
+  | 'monitoringPointDetail.importInvalidFile'
+  | 'monitoringPointDetail.importFormatHint'
+  | 'monitoringPointDetail.importDescription'
+  | 'monitoringPointDetail.importDateLabel'
+  | 'monitoringPointDetail.importTimeLabel'
+  | 'monitoringPointDetail.importValueLabel'
+  | 'monitoringPointDetail.importFieldsRequired'
+  | 'monitoringPointDetail.importValueInvalid'
+  | 'common.or'
+  | 'monitoringPointDetail.importDateInvalid'
+  | 'monitoringPointDetail.importDateFuture'
+  | 'monitoringPointDetail.importTimeInvalid';
 
 const pt: Record<TranslationKey, string> = {
   'common.cancel': 'Cancelar',
@@ -245,6 +260,23 @@ const pt: Record<TranslationKey, string> = {
   'series.accelerationX': 'Aceleração RMS X',
   'series.accelerationY': 'Aceleração RMS Y',
   'series.accelerationZ': 'Aceleração RMS Z',
+  'monitoringPointDetail.importData': 'Importar dados',
+  'monitoringPointDetail.importing': 'Importando...',
+  'monitoringPointDetail.importSuccess': 'Dados importados com sucesso',
+  'monitoringPointDetail.importInvalidFile': 'Arquivo inválido. Envie um JSON no formato esperado.',
+  'monitoringPointDetail.importFormatHint':
+    'O arquivo JSON deve ser uma lista de objetos, cada um com "seriesName", "datetime" e "value". Exemplo: [{ "seriesName": "temperature", "datetime": "2026-01-15T10:00:00Z", "value": 24.5 }]',
+  'monitoringPointDetail.importDescription':
+    'Preencha uma leitura manualmente, ou envie um arquivo JSON com várias leituras de uma vez.',
+  'monitoringPointDetail.importDateLabel': 'Data',
+  'monitoringPointDetail.importTimeLabel': 'Hora',
+  'monitoringPointDetail.importValueLabel': 'Valor',
+  'monitoringPointDetail.importFieldsRequired': 'Preencha data, hora, série e valor',
+  'monitoringPointDetail.importValueInvalid': 'Informe um valor numérico válido',
+  'common.or': 'ou',
+  'monitoringPointDetail.importDateInvalid': 'Insira uma data válida',
+  'monitoringPointDetail.importDateFuture': 'A data não pode ser depois de hoje',
+  'monitoringPointDetail.importTimeInvalid': 'Insira uma hora válida',
 };
 
 const en: Record<TranslationKey, string> = {
@@ -371,6 +403,24 @@ const en: Record<TranslationKey, string> = {
   'series.accelerationX': 'Acceleration RMS X',
   'series.accelerationY': 'Acceleration RMS Y',
   'series.accelerationZ': 'Acceleration RMS Z',
+  'monitoringPointDetail.importData': 'Import data',
+  'monitoringPointDetail.importing': 'Importing...',
+  'monitoringPointDetail.importSuccess': 'Data imported successfully',
+  'monitoringPointDetail.importInvalidFile': 'Invalid file. Upload a JSON in the expected format.',
+  'monitoringPointDetail.importFormatHint':
+    'The JSON file must be a list of objects, each with "seriesName", "datetime" and "value". Example: [{ "seriesName": "temperature", "datetime": "2026-01-15T10:00:00Z", "value": 24.5 }]',
+  'monitoringPointDetail.importDescription':
+    'Fill in one reading by hand, or upload a JSON file with several readings at once.',
+  'monitoringPointDetail.importDateLabel': 'Date',
+  'monitoringPointDetail.importTimeLabel': 'Time',
+  'monitoringPointDetail.importValueLabel': 'Value',
+  'monitoringPointDetail.importFieldsRequired': 'Fill in date, time, series and value',
+  'monitoringPointDetail.importValueInvalid': 'Enter a valid numeric value',
+  'common.or': 'or',
+  'monitoringPointDetail.importDateInvalid': 'Enter a valid date',
+  'monitoringPointDetail.importDateFuture': 'The date cannot be later than today',
+  'monitoringPointDetail.importTimeInvalid': 'Enter a valid time',
+
 };
 
 export const dictionaries: Record<Language, Record<TranslationKey, string>> = { pt, en };
