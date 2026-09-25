@@ -268,16 +268,20 @@ export default function DashboardPage() {
 
               {latency ? (
                 <Box sx={{ mb: 2 }}>
-                  <Typography variant="h2">{latency.clientMs.toFixed(0)}ms</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {t('dashboard.measuredInBrowser')}
-                  </Typography>
-
-                  {latency.serverMs !== null && (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                      {t('dashboard.serverReported')} {latency.serverMs.toFixed(1)}ms (X-Response-Time)
-                    </Typography>
+                  {latency.serverMs !== null ? (
+                    <>
+                      <Typography variant="h2">{latency.serverMs.toFixed(1)}ms</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('dashboard.serverReported')} (X-Response-Time)
+                      </Typography>
+                    </>
+                  ) : (
+                    <Typography variant="h2">{latency.clientMs.toFixed(0)}ms</Typography>
                   )}
+
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    {t('dashboard.measuredInBrowser')}: {latency.clientMs.toFixed(0)}ms
+                  </Typography>
 
                   <Chip
                     sx={{ mt: 1.5 }}
@@ -285,9 +289,6 @@ export default function DashboardPage() {
                     label={isWithinLimit ? t('dashboard.withinLimit') : t('dashboard.aboveLimit')}
                     color={isWithinLimit ? 'success' : 'error'}
                   />
-                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-                    {t('dashboard.limitBasedOnServer')}
-                  </Typography>
                 </Box>
               ) : (
                 <Skeleton height={80} sx={{ mb: 2 }} />
