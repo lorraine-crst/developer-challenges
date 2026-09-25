@@ -114,6 +114,7 @@ export default function LoginPage() {
                 autoFocus
                 required
                 fullWidth
+                InputLabelProps={{ shrink: true }}
               />
 
               <TextField
@@ -126,6 +127,7 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required
                 fullWidth
+                InputLabelProps={{ shrink: true }}
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
