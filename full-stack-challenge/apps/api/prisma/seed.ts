@@ -136,14 +136,20 @@ async function main() {
   const created = await createMachines();
 
   const allSeries = dataset.map((series) => series.name);
-  const frontBearing = created[0].monitoringPoints[0];
-  const upperBearing = created[2].monitoringPoints[0];
+  const allPoints = created.flatMap((machine, machineIndex) =>
+    machine.monitoringPoints.map((point, pointIndex) => ({
+      id: point.id,
+      hasSensor: machines[machineIndex].points[pointIndex].sensor !== null,
+    })),
+  );
 
-  const readings =
-    (await importReadings(frontBearing.id, allSeries)) +
-    (await importReadings(upperBearing.id, ['temperature']));
+  let readings = 0;
 
-  const points = created.reduce((sum, machine) => sum + machine.monitoringPoints.length, 0);
+  for (const point of allPoints.filter((point) => point.hasSensor)) {
+    readings += await importReadings(point.id, allSeries);
+  }
+
+  const points = allPoints.length;
 
   console.log(`User: ${user.email}`);
   console.log(`Machines: ${created.length}`);

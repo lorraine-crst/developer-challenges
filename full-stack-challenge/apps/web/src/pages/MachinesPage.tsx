@@ -14,6 +14,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TableSortLabel,
   TextField,
   Typography,
 } from '@mui/material';
@@ -35,6 +36,9 @@ import { useTranslation } from '../lib/i18n/LanguageContext';
 
 const MACHINE_TYPES: MachineType[] = ['Bomba', 'Ventilador'];
 
+type SortField = 'name' | 'type';
+type SortOrder = 'asc' | 'desc';
+
 interface FormState {
   name: string;
   type: MachineType | '';
@@ -51,6 +55,9 @@ export default function MachinesPage() {
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const { items, status } = useAppSelector((state) => state.machines);
+
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
   const [machineToDelete, setMachineToDelete] = useState<Machine | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -72,6 +79,31 @@ export default function MachinesPage() {
       void dispatch(fetchMachines());
     }
   }, [status, dispatch]);
+
+  function handleSort(field: SortField) {
+    if (sortField !== field) {
+      setSortField(field);
+      setSortOrder('asc');
+      return;
+    }
+
+    if (sortOrder === 'asc') {
+      setSortOrder('desc');
+      return;
+    }
+
+    setSortField(null);
+  }
+
+  const sortedItems = sortField
+    ? [...items].sort((a, b) => {
+      const first = sortField === 'name' ? a.name : a.type;
+      const second = sortField === 'name' ? b.name : b.type;
+      const comparison = first.localeCompare(second);
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    })
+    : items;
 
   function openCreateForm() {
     setEditingMachine(null);
@@ -155,63 +187,99 @@ export default function MachinesPage() {
 
       <Box sx={{ px: { xs: 2, sm: 4 } }}>
         <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
-  {status === 'loading' ? (
-    <Stack spacing={1} sx={{ p: 2 }}>
-      <Skeleton height={48} />
-      <Skeleton height={48} />
-      <Skeleton height={48} />
-    </Stack>
-  ) : items.length === 0 ? (
-    <Typography sx={{ p: 4 }} color="text.secondary" align="center">
-      {t('machines.empty')}
-    </Typography>
-  ) : (
-    <Table
-      sx={(theme) => ({
-        '& .MuiTableHead-root .MuiTableRow-root': {
-          bgcolor: theme.palette.primary.main,
-        },
-        '& .MuiTableHead-root .MuiTableCell-root': {
-          color: theme.palette.primary.contrastText,
-          fontWeight: 600,
-        },
-        '& .MuiTableBody-root .MuiTableRow-root:hover': {
-          bgcolor: alpha(theme.palette.secondary.main, 0.1),
-        },
-      })}
-    >
-      <TableHead>
-        <TableRow>
-          <TableCell>{t('machines.columnName')}</TableCell>
-          <TableCell>{t('machines.columnType')}</TableCell>
-          <TableCell align="right">{t('machines.columnActions')}</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {items.map((machine) => (
-          <TableRow key={machine.id} hover>
-            <TableCell>{machine.name}</TableCell>
-            <TableCell>
-              <Chip
-                label={machineTypeLabel(machine.type)}
-                size="small"
-                color={machine.type === 'Bomba' ? 'primary' : 'secondary'}
-              />
-            </TableCell>
-            <TableCell align="right">
-              <IconButton size="small" onClick={() => openEditForm(machine)}>
-                <EditIcon fontSize="small" />
-              </IconButton>
-              <IconButton size="small" onClick={() => setMachineToDelete(machine)}>
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  )}
-</Paper>
+          {status === 'loading' ? (
+            <Stack spacing={1} sx={{ p: 2 }}>
+              <Skeleton height={48} />
+              <Skeleton height={48} />
+              <Skeleton height={48} />
+            </Stack>
+          ) : items.length === 0 ? (
+            <Typography sx={{ p: 4 }} color="text.secondary" align="center">
+              {t('machines.empty')}
+            </Typography>
+          ) : (
+            <Table
+              sx={(theme) => ({
+                '& .MuiTableHead-root .MuiTableRow-root': {
+                  bgcolor: theme.palette.primary.main,
+                },
+                '& .MuiTableHead-root .MuiTableCell-root': {
+                  color: theme.palette.primary.contrastText,
+                  fontWeight: 600,
+                },
+                '& .MuiTableBody-root .MuiTableRow-root:hover': {
+                  bgcolor: alpha(theme.palette.secondary.main, 0.1),
+                },
+              })}
+            >
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    <TableSortLabel
+                      active={sortField === 'name'}
+                      direction={sortField === 'name' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('name')}
+                      sx={{
+                        color: 'inherit !important',
+                        '& .MuiTableSortLabel-icon': {
+                          color: 'inherit !important',
+                          opacity: 0.5,
+                        },
+                        '&.Mui-active .MuiTableSortLabel-icon': {
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      {t('machines.columnName')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell>
+                    <TableSortLabel
+                      active={sortField === 'type'}
+                      direction={sortField === 'type' ? sortOrder : 'asc'}
+                      onClick={() => handleSort('type')}
+                      sx={{
+                        color: 'inherit !important',
+                        '& .MuiTableSortLabel-icon': {
+                          color: 'inherit !important',
+                          opacity: 0.5,
+                        },
+                        '&.Mui-active .MuiTableSortLabel-icon': {
+                          opacity: 1,
+                        },
+                      }}
+                    >
+                      {t('machines.columnType')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right">{t('machines.columnActions')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sortedItems.map((machine) => (
+                  <TableRow key={machine.id} hover>
+                    <TableCell>{machine.name}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={machineTypeLabel(machine.type)}
+                        size="small"
+                        color={machine.type === 'Bomba' ? 'primary' : 'secondary'}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton size="small" onClick={() => openEditForm(machine)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => setMachineToDelete(machine)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Paper>
       </Box>
 
       <FormDialog

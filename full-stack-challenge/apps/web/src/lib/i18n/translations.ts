@@ -101,6 +101,7 @@ export type TranslationKey =
   | 'monitoringPointDetail.chartTab'
   | 'monitoringPointDetail.tableTab'
   | 'monitoringPointDetail.noReadingsFound'
+  | 'monitoringPointDetail.noSensorAssociated'
   | 'monitoringPointDetail.dateTimeColumn'
   | 'monitoringPointDetail.forecastTitle'
   | 'monitoringPointDetail.forecastLabel'
@@ -224,6 +225,8 @@ const pt: Record<TranslationKey, string> = {
   'monitoringPointDetail.chartTab': 'Gráfico',
   'monitoringPointDetail.tableTab': 'Tabela',
   'monitoringPointDetail.noReadingsFound': 'Nenhuma leitura encontrada para esta série.',
+  'monitoringPointDetail.noSensorAssociated':
+    'Este ponto de monitoramento ainda não tem um sensor associado. Associe um sensor para visualizar dados de série temporal.',
   'monitoringPointDetail.dateTimeColumn': 'Data e hora',
   'monitoringPointDetail.forecastTitle': 'Previsão para os próximos 7 dias',
   'monitoringPointDetail.forecastLabel': 'Previsão',
@@ -348,6 +351,8 @@ const en: Record<TranslationKey, string> = {
   'monitoringPointDetail.chartTab': 'Chart',
   'monitoringPointDetail.tableTab': 'Table',
   'monitoringPointDetail.noReadingsFound': 'No readings found for this series.',
+  'monitoringPointDetail.noSensorAssociated':
+    'This monitoring point does not have a sensor associated yet. Associate a sensor to view time-series data.',
   'monitoringPointDetail.dateTimeColumn': 'Date and time',
   'monitoringPointDetail.forecastTitle': 'Forecast for the next 7 days',
   'monitoringPointDetail.forecastLabel': 'Forecast',

@@ -94,6 +94,19 @@ export default function MonitoringPointsPage() {
 
   const [helpOpen, setHelpOpen] = useState(false);
 
+  const [showLoading, setShowLoading] = useState(false);
+
+  useEffect(() => {
+    if (status !== 'loading') {
+      setShowLoading(false);
+      return;
+    }
+
+    const timeout = setTimeout(() => setShowLoading(true), 300);
+
+    return () => clearTimeout(timeout);
+  }, [status]);
+
   function machineTypeLabel(type: MachineType) {
     return type === 'Bomba' ? t('machineType.pump') : t('machineType.fan');
   }
@@ -411,7 +424,7 @@ export default function MonitoringPointsPage() {
           rows={items}
           columns={columnsWithActions}
           rowCount={total}
-          loading={status === 'loading'}
+          loading={showLoading}
           paginationMode="server"
           sortingMode="server"
           pageSizeOptions={[PAGE_SIZE]}
@@ -420,7 +433,11 @@ export default function MonitoringPointsPage() {
           onSortModelChange={handleSortChange}
           onRowClick={(params) =>
             navigate(`/monitoring-points/${params.row.id}`, {
-              state: { machineName: params.row.machine.name, pointName: params.row.name },
+              state: {
+                machineName: params.row.machine.name,
+                pointName: params.row.name,
+                hasSensor: Boolean(params.row.sensor),
+              },
             })
           }
           disableColumnMenu
@@ -441,6 +458,14 @@ export default function MonitoringPointsPage() {
             },
             '& .MuiDataGrid-sortIcon': {
               color: theme.palette.primary.contrastText,
+              opacity: '0.5 !important',
+            },
+            '& .MuiDataGrid-columnHeader--sorted .MuiDataGrid-sortIcon': {
+              opacity: '1 !important',
+            },
+            '& .MuiDataGrid-iconButtonContainer': {
+              visibility: 'visible !important',
+              width: 'auto !important',
             },
             '& .MuiDataGrid-menuIconButton': {
               color: theme.palette.primary.contrastText,

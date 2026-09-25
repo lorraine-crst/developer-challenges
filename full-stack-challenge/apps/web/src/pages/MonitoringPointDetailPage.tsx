@@ -75,6 +75,7 @@ const SERIES_LABEL_KEYS: Record<string, TranslationKey> = {
 interface LocationState {
   machineName?: string;
   pointName?: string;
+  hasSensor?: boolean;
 }
 
 function formatMetric(value: number | null | undefined) {
@@ -85,7 +86,8 @@ export default function MonitoringPointDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { machineName, pointName } = (location.state as LocationState | null) ?? {};
+  const { machineName, pointName, hasSensor = true } =
+    (location.state as LocationState | null) ?? {};
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
   const { items, metrics, activeSeriesName, status } = useAppSelector(
@@ -110,15 +112,33 @@ export default function MonitoringPointDetailPage() {
     null,
   );
 
+  const [showLoading, setShowLoading] = useState(false);
+
+  useEffect(() => {
+    if (status !== 'loading') {
+      setShowLoading(false);
+      return;
+    }
+
+    const timeout = setTimeout(() => setShowLoading(true), 300);
+
+    return () => clearTimeout(timeout);
+  }, [status]);
+
   useEffect(() => {
     if (!id) return;
+
+    if (!hasSensor) {
+      dispatch(clearReadings());
+      return;
+    }
 
     void dispatch(fetchReadings({ monitoringPointId: id, seriesName: DEFAULT_SERIES }));
 
     return () => {
       dispatch(clearReadings());
     };
-  }, [id, dispatch]);
+  }, [id, hasSensor, dispatch]);
 
   function handleSeriesChange(seriesName: string) {
     if (!id) return;
@@ -193,195 +213,205 @@ export default function MonitoringPointDetailPage() {
       />
 
       <Box sx={{ px: { xs: 2, sm: 4 } }}>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-          justifyContent="space-between"
-          sx={{ mb: 3 }}
-        >
-          <TextField
-            select
-            label={t('monitoringPointDetail.seriesLabel')}
-            value={activeSeriesName ?? DEFAULT_SERIES}
-            onChange={(event) => handleSeriesChange(event.target.value)}
-            sx={{ minWidth: 240 }}
-          >
-            {KNOWN_SERIES.map((series) => (
-              <MenuItem key={series} value={series}>
-                {getSeriesInfo(series).label}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <Button
-            color="error"
-            variant="outlined"
-            disabled={items.length === 0}
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            {t('monitoringPointDetail.deleteSeriesButton')}
-          </Button>
-        </Stack>
-
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
-            gap: 2,
-            mb: 3,
-          }}
-        >
-          <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                {t('monitoringPointDetail.totalReadings')}
-              </Typography>
-              <Typography variant="h2">{metrics?.count ?? 0}</Typography>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                {t('monitoringPointDetail.minimum')}
-              </Typography>
-              <Typography variant="h2">{formatMetric(metrics?.min)}</Typography>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                {t('monitoringPointDetail.maximum')}
-              </Typography>
-              <Typography variant="h2">{formatMetric(metrics?.max)}</Typography>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                {t('dashboard.average')}
-              </Typography>
-              <Typography variant="h2">{formatMetric(metrics?.avg)}</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Tabs value={view} onChange={(_event, value) => setView(value)} sx={{ mb: 2 }}>
-          <Tab label={t('monitoringPointDetail.chartTab')} value="chart" />
-          <Tab label={t('monitoringPointDetail.tableTab')} value="table" />
-        </Tabs>
-
-        {status === 'loading' ? (
-          <Skeleton height={360} />
-        ) : chartData.length === 0 ? (
+        {!hasSensor ? (
           <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
             <Typography color="text.secondary">
-              {t('monitoringPointDetail.noReadingsFound')}
+              {t('monitoringPointDetail.noSensorAssociated')}
             </Typography>
-          </Paper>
-        ) : view === 'chart' ? (
-          <Paper variant="outlined" sx={{ pt: 2, pr: 2, pb: 2, pl: 0.5, height: 360 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis
-                  tick={{ fontSize: 12 }}
-                  domain={['auto', 'auto']}
-                  tickFormatter={(value: number) => value.toFixed(1)}
-                  width={40}
-                />
-                <RechartsTooltip
-                  labelFormatter={(_label, payload) =>
-                    payload?.[0]
-                      ? new Date(payload[0].payload.datetime).toLocaleString('pt-BR')
-                      : ''
-                  }
-                  formatter={(value: number) => [
-                    `${value.toFixed(2)} ${activeSeriesInfo.unit}`,
-                    activeSeriesInfo.label,
-                  ]}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#3B162C"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
           </Paper>
         ) : (
-          <Paper variant="outlined" sx={{ maxHeight: 360, overflow: 'auto' }}>
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>{t('monitoringPointDetail.dateTimeColumn')}</TableCell>
-                  <TableCell align="right">
-                    {activeSeriesInfo.label} ({activeSeriesInfo.unit})
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((reading) => (
-                  <TableRow key={reading.id}>
-                    <TableCell>{new Date(reading.datetime).toLocaleString('pt-BR')}</TableCell>
-                    <TableCell align="right">{reading.value.toFixed(2)}</TableCell>
-                  </TableRow>
+          <>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              alignItems={{ xs: 'stretch', sm: 'center' }}
+              justifyContent="space-between"
+              sx={{ mb: 3 }}
+            >
+              <TextField
+                select
+                label={t('monitoringPointDetail.seriesLabel')}
+                value={activeSeriesName ?? DEFAULT_SERIES}
+                onChange={(event) => handleSeriesChange(event.target.value)}
+                sx={{ minWidth: 240 }}
+              >
+                {KNOWN_SERIES.map((series) => (
+                  <MenuItem key={series} value={series}>
+                    {getSeriesInfo(series).label}
+                  </MenuItem>
                 ))}
-              </TableBody>
-            </Table>
-          </Paper>
-        )}
+              </TextField>
 
-        {forecastChartData.length > 1 && (
-          <Box sx={{ mt: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              {t('monitoringPointDetail.forecastTitle')}
-            </Typography>
+              <Button
+                color="error"
+                variant="outlined"
+                disabled={items.length === 0}
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                {t('monitoringPointDetail.deleteSeriesButton')}
+              </Button>
+            </Stack>
 
-            <Paper variant="outlined" sx={{ pt: 2, pr: 2, pb: 2, pl: 0.5, height: 280 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={forecastChartData}
-                  margin={{ top: 5, right: 10, bottom: 5, left: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                  <YAxis
-                    tick={{ fontSize: 12 }}
-                    domain={['auto', 'auto']}
-                    tickFormatter={(value: number) => value.toFixed(1)}
-                    width={40}
-                  />
-                  <RechartsTooltip
-                    labelFormatter={(_label, payload) =>
-                      payload?.[0]
-                        ? new Date(payload[0].payload.datetime).toLocaleString('pt-BR')
-                        : ''
-                    }
-                    formatter={(value: number) => [
-                      `${value.toFixed(2)} ${activeSeriesInfo.unit}`,
-                      t('monitoringPointDetail.forecastLabel'),
-                    ]}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="forecast"
-                    stroke="#ECA742"
-                    strokeWidth={2}
-                    strokeDasharray="6 4"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </Paper>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              <Card>
+                <CardContent>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('monitoringPointDetail.totalReadings')}
+                  </Typography>
+                  <Typography variant="h2">{metrics?.count ?? 0}</Typography>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('monitoringPointDetail.minimum')}
+                  </Typography>
+                  <Typography variant="h2">{formatMetric(metrics?.min)}</Typography>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('monitoringPointDetail.maximum')}
+                  </Typography>
+                  <Typography variant="h2">{formatMetric(metrics?.max)}</Typography>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('dashboard.average')}
+                  </Typography>
+                  <Typography variant="h2">{formatMetric(metrics?.avg)}</Typography>
+                </CardContent>
+              </Card>
+            </Box>
 
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              {t('monitoringPointDetail.forecastDisclaimer')}
-            </Typography>
-          </Box>
+            <Tabs value={view} onChange={(_event, value) => setView(value)} sx={{ mb: 2 }}>
+              <Tab label={t('monitoringPointDetail.chartTab')} value="chart" />
+              <Tab label={t('monitoringPointDetail.tableTab')} value="table" />
+            </Tabs>
+
+            {showLoading ? (
+              <Skeleton height={360} />
+            ) : chartData.length === 0 ? (
+              <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+                <Typography color="text.secondary">
+                  {t('monitoringPointDetail.noReadingsFound')}
+                </Typography>
+              </Paper>
+            ) : view === 'chart' ? (
+              <Paper variant="outlined" sx={{ pt: 2, pr: 2, pb: 2, pl: 0.5, height: 360 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                    <YAxis
+                      tick={{ fontSize: 12 }}
+                      domain={['auto', 'auto']}
+                      tickFormatter={(value: number) => value.toFixed(1)}
+                      width={40}
+                    />
+                    <RechartsTooltip
+                      labelFormatter={(_label, payload) =>
+                        payload?.[0]
+                          ? new Date(payload[0].payload.datetime).toLocaleString('pt-BR')
+                          : ''
+                      }
+                      formatter={(value: number) => [
+                        `${value.toFixed(2)} ${activeSeriesInfo.unit}`,
+                        activeSeriesInfo.label,
+                      ]}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#3B162C"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Paper>
+            ) : (
+              <Paper variant="outlined" sx={{ maxHeight: 360, overflow: 'auto' }}>
+                <Table stickyHeader size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>{t('monitoringPointDetail.dateTimeColumn')}</TableCell>
+                      <TableCell align="right">
+                        {activeSeriesInfo.label} ({activeSeriesInfo.unit})
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {items.map((reading) => (
+                      <TableRow key={reading.id}>
+                        <TableCell>{new Date(reading.datetime).toLocaleString('pt-BR')}</TableCell>
+                        <TableCell align="right">{reading.value.toFixed(2)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Paper>
+            )}
+
+            {forecastChartData.length > 1 && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  {t('monitoringPointDetail.forecastTitle')}
+                </Typography>
+
+                <Paper variant="outlined" sx={{ pt: 2, pr: 2, pb: 2, pl: 0.5, height: 280 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={forecastChartData}
+                      margin={{ top: 5, right: 10, bottom: 5, left: 0 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                      <YAxis
+                        tick={{ fontSize: 12 }}
+                        domain={['auto', 'auto']}
+                        tickFormatter={(value: number) => value.toFixed(1)}
+                        width={40}
+                      />
+                      <RechartsTooltip
+                        labelFormatter={(_label, payload) =>
+                          payload?.[0]
+                            ? new Date(payload[0].payload.datetime).toLocaleString('pt-BR')
+                            : ''
+                        }
+                        formatter={(value: number) => [
+                          `${value.toFixed(2)} ${activeSeriesInfo.unit}`,
+                          t('monitoringPointDetail.forecastLabel'),
+                        ]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="forecast"
+                        stroke="#ECA742"
+                        strokeWidth={2}
+                        strokeDasharray="6 4"
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Paper>
+
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                  {t('monitoringPointDetail.forecastDisclaimer')}
+                </Typography>
+              </Box>
+            )}
+          </>
         )}
       </Box>
 
