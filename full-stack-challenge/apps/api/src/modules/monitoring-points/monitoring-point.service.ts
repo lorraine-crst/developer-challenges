@@ -27,7 +27,11 @@ async function ensureExists(id: string) {
 
 async function ensurePointNameAvailable(machineId: string, name: string, excludeId?: string) {
   const existing = await prisma.monitoringPoint.findFirst({
-    where: { machineId, name, ...(excludeId ? { id: { not: excludeId } } : {}) },
+    where: {
+      machineId,
+      name: { equals: name, mode: 'insensitive' },
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
   });
 
   if (existing) {

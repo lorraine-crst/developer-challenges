@@ -24,7 +24,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   }
 
   if (err instanceof AppError) {
-    res.status(err.statusCode).json({ error: translate(err.message, language) });
+    res.status(err.statusCode).json({ error: translate(err.message, language, err.params) });
     return;
   }
 

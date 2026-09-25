@@ -7,6 +7,10 @@ const MESSAGES = {
     en: 'A machine with this name already exists',
   },
   'machine.nameRequired': { pt: 'Informe o nome da máquina', en: 'Enter the machine name' },
+  'machine.typeChangeBlockedBySensor': {
+    pt: 'Não é possível mudar para Bomba: o ponto "{pointName}" tem um sensor incompatível (TcAg ou TcAs)',
+    en: 'Cannot change to Pump: the point "{pointName}" has an incompatible sensor (TcAg or TcAs)',
+  },
   'monitoringPoint.notFound': {
     pt: 'Ponto de monitoramento não encontrado',
     en: 'Monitoring point not found',
@@ -66,10 +70,17 @@ const MESSAGES = {
 
 export type MessageKey = keyof typeof MESSAGES;
 
-export function translate(key: string, language: Language): string {
+export function translate(key: string, language: Language, params?: Record<string, string>): string {
   const entry = MESSAGES[key as MessageKey];
+  let text = entry ? entry[language] : key;
 
-  return entry ? entry[language] : key;
+  if (params) {
+    for (const [paramKey, value] of Object.entries(params)) {
+      text = text.replace(`{${paramKey}}`, value);
+    }
+  }
+
+  return text;
 }
 
 export function resolveLanguage(header: string | string[] | undefined): Language {

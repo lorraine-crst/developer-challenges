@@ -11,7 +11,10 @@ export function findAll() {
 
 async function ensureNameAvailable(name: string, excludeId?: string) {
   const existing = await prisma.machine.findFirst({
-    where: { name, ...(excludeId ? { id: { not: excludeId } } : {}) },
+    where: {
+      name: { equals: name, mode: 'insensitive' },
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+    },
   });
 
   if (existing) {
@@ -50,7 +53,17 @@ export async function update(id: string, data: UpdateMachineInput) {
 
     for (const point of points) {
       if (point.sensor) {
-        assertSensorCompatibleWithMachine(data.type, point.sensor.model);
+        try {
+          assertSensorCompatibleWithMachine(data.type, point.sensor.model);
+        } catch (error) {
+          if (error instanceof AppError) {
+            throw new AppError(error.statusCode, 'machine.typeChangeBlockedBySensor', {
+              pointName: point.name,
+            });
+          }
+
+          throw error;
+        }
       }
     }
   }
