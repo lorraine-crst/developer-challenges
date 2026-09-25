@@ -122,7 +122,9 @@ export default function DashboardPage() {
     { type: t('machineType.fan'), count: ventiladorCount, rawType: 'Ventilador' },
   ];
 
-  const isWithinLimit = latency ? latency.clientMs < LATENCY_LIMIT_MS : null;
+  const isWithinLimit = latency
+    ? (latency.serverMs ?? latency.clientMs) < LATENCY_LIMIT_MS
+    : null;
 
   return (
     <Box>
