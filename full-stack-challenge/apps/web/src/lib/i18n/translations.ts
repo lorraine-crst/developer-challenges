@@ -116,6 +116,7 @@ export type TranslationKey =
   | 'series.velocityZ'
   | 'series.accelerationX'
   | 'series.accelerationY'
+  | 'dashboard.limitBasedOnServer'
   | 'series.accelerationZ';
 
 const pt: Record<TranslationKey, string> = {
@@ -155,6 +156,7 @@ const pt: Record<TranslationKey, string> = {
   'dashboard.serverReported': 'Servidor reportou',
   'dashboard.withinLimit': 'Dentro do limite de 350ms',
   'dashboard.aboveLimit': 'Acima do limite de 350ms',
+    'dashboard.limitBasedOnServer': 'Baseado no tempo do servidor, não no total acima',
   'dashboard.measureAgain': 'Medir novamente',
   'dashboard.measuring': 'Medindo...',
   'dashboard.footerCredit': 'Desafio Full-Stack Dynamox — desenvolvido por',
@@ -280,6 +282,7 @@ const en: Record<TranslationKey, string> = {
   'dashboard.serverReported': 'Server reported',
   'dashboard.withinLimit': 'Within the 350ms limit',
   'dashboard.aboveLimit': 'Above the 350ms limit',
+    'dashboard.limitBasedOnServer': 'Based on the server time, not the total above',
   'dashboard.measureAgain': 'Measure again',
   'dashboard.measuring': 'Measuring...',
   'dashboard.footerCredit': 'Dynamox Full-Stack Challenge — built by',

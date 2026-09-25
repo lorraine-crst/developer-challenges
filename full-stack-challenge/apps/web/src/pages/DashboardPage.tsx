@@ -285,6 +285,9 @@ export default function DashboardPage() {
                     label={isWithinLimit ? t('dashboard.withinLimit') : t('dashboard.aboveLimit')}
                     color={isWithinLimit ? 'success' : 'error'}
                   />
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                    {t('dashboard.limitBasedOnServer')}
+                  </Typography>
                 </Box>
               ) : (
                 <Skeleton height={80} sx={{ mb: 2 }} />
