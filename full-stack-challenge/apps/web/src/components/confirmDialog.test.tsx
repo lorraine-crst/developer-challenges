@@ -1,17 +1,20 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { LanguageProvider } from '../lib/i18n/LanguageContext';
 import ConfirmDialog from './ConfirmDialog';
 
 describe('ConfirmDialog', () => {
   it('shows the title and message when open', () => {
     render(
-      <ConfirmDialog
-        open
-        title="Excluir máquina"
-        message="Tem certeza?"
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
-      />,
+      <LanguageProvider>
+        <ConfirmDialog
+          open
+          title="Excluir máquina"
+          message="Tem certeza?"
+          onConfirm={vi.fn()}
+          onCancel={vi.fn()}
+        />
+      </LanguageProvider>,
     );
 
     expect(screen.getByText('Excluir máquina')).toBeInTheDocument();
@@ -22,13 +25,15 @@ describe('ConfirmDialog', () => {
     const onCancel = vi.fn();
 
     render(
-      <ConfirmDialog
-        open
-        title="Excluir máquina"
-        message="Tem certeza?"
-        onConfirm={vi.fn()}
-        onCancel={onCancel}
-      />,
+      <LanguageProvider>
+        <ConfirmDialog
+          open
+          title="Excluir máquina"
+          message="Tem certeza?"
+          onConfirm={vi.fn()}
+          onCancel={onCancel}
+        />
+      </LanguageProvider>,
     );
 
     fireEvent.click(screen.getByText('Cancelar'));
@@ -40,13 +45,15 @@ describe('ConfirmDialog', () => {
     const onConfirm = vi.fn();
 
     render(
-      <ConfirmDialog
-        open
-        title="Excluir máquina"
-        message="Tem certeza?"
-        onConfirm={onConfirm}
-        onCancel={vi.fn()}
-      />,
+      <LanguageProvider>
+        <ConfirmDialog
+          open
+          title="Excluir máquina"
+          message="Tem certeza?"
+          onConfirm={onConfirm}
+          onCancel={vi.fn()}
+        />
+      </LanguageProvider>,
     );
 
     fireEvent.click(screen.getByText('Excluir'));
@@ -56,14 +63,16 @@ describe('ConfirmDialog', () => {
 
   it('disables both buttons when loading', () => {
     render(
-      <ConfirmDialog
-        open
-        title="Excluir máquina"
-        message="Tem certeza?"
-        loading
-        onConfirm={vi.fn()}
-        onCancel={vi.fn()}
-      />,
+      <LanguageProvider>
+        <ConfirmDialog
+          open
+          title="Excluir máquina"
+          message="Tem certeza?"
+          loading
+          onConfirm={vi.fn()}
+          onCancel={vi.fn()}
+        />
+      </LanguageProvider>,
     );
 
     expect(screen.getByText('Cancelar')).toBeDisabled();
