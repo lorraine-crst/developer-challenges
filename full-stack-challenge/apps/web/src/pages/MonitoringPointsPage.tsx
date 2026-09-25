@@ -419,12 +419,13 @@ export default function MonitoringPointsPage() {
         </ClickAwayListener>
       </PageHeader>
 
-      <Box sx={{ px: { xs: 2, sm: 4 }, height: 480 }}>
+      <Box sx={{ px: { xs: 2, sm: 4 } }}>
         <DataGrid
           rows={items}
           columns={columnsWithActions}
           rowCount={total}
           loading={showLoading}
+          autoHeight
           paginationMode="server"
           sortingMode="server"
           pageSizeOptions={[PAGE_SIZE]}
