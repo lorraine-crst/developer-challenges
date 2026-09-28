@@ -132,7 +132,9 @@ export type TranslationKey =
   | 'common.or'
   | 'monitoringPointDetail.importDateInvalid'
   | 'monitoringPointDetail.importDateFuture'
-  | 'monitoringPointDetail.importTimeInvalid';
+  | 'monitoringPointDetail.importTimeInvalid'
+  | 'common.retry'
+  | 'monitoringPoints.loadError';
 
 const pt: Record<TranslationKey, string> = {
   'common.cancel': 'Cancelar',
@@ -277,6 +279,8 @@ const pt: Record<TranslationKey, string> = {
   'monitoringPointDetail.importDateInvalid': 'Insira uma data válida',
   'monitoringPointDetail.importDateFuture': 'A data não pode ser depois de hoje',
   'monitoringPointDetail.importTimeInvalid': 'Insira uma hora válida',
+  'common.retry': 'Tentar novamente',
+  'monitoringPoints.loadError': 'Não foi possível carregar os pontos de monitoramento.',
 };
 
 const en: Record<TranslationKey, string> = {
@@ -420,7 +424,8 @@ const en: Record<TranslationKey, string> = {
   'monitoringPointDetail.importDateInvalid': 'Enter a valid date',
   'monitoringPointDetail.importDateFuture': 'The date cannot be later than today',
   'monitoringPointDetail.importTimeInvalid': 'Enter a valid time',
-
+  'common.retry': 'Try again',
+  'monitoringPoints.loadError': 'Could not load the monitoring points.',
 };
 
 export const dictionaries: Record<Language, Record<TranslationKey, string>> = { pt, en };

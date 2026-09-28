@@ -2,6 +2,7 @@ import {
   alpha,
   Alert,
   Box,
+  Button,
   Chip,
   ClickAwayListener,
   IconButton,
@@ -62,7 +63,7 @@ export default function MonitoringPointsPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { items, total, page, sortBy, order, status } = useAppSelector(
+  const { items, total, page, sortBy, order, status, error } = useAppSelector(
     (state) => state.monitoringPoints,
   );
   const machines = useAppSelector((state) => state.machines.items);
@@ -187,7 +188,10 @@ export default function MonitoringPointsPage() {
   }
 
   function handleSortChange(model: GridSortModel) {
-    if (model.length === 0) return;
+    if (model.length === 0) {
+      void dispatch(fetchMonitoringPoints({ page: 1, sortBy: 'pointName', order: 'asc' }));
+      return;
+    }
 
     const nextSortBy = model[0].field as MonitoringPointSortField;
     const nextOrder = model[0].sort ?? 'asc';
@@ -418,6 +422,24 @@ export default function MonitoringPointsPage() {
           </Tooltip>
         </ClickAwayListener>
       </PageHeader>
+
+      {status === 'failed' && (
+        <Alert
+          severity="error"
+          sx={{ mx: { xs: 2, sm: 4 }, mb: 2 }}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => void dispatch(fetchMonitoringPoints({ page, sortBy, order }))}
+            >
+              {t('common.retry')}
+            </Button>
+          }
+        >
+          {error ?? t('monitoringPoints.loadError')}
+        </Alert>
+      )}
 
       <Box sx={{ px: { xs: 2, sm: 4 } }}>
         <DataGrid

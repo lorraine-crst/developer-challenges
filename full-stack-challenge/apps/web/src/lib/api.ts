@@ -6,6 +6,7 @@ const TOKEN_STORAGE_KEY = 'dynamox.token';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3333',
+  timeout: 60000,
 });
 
 export function getStoredToken(): string | null {
